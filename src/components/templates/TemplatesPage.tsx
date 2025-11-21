@@ -1,27 +1,34 @@
 import React, { useMemo, useState } from 'react'
 import AppHeader from '../ui/AppHeader'
 import TemplateCard from './TemplateCard'
-
-const TEMPLATES = [
-    { id: 't1', title: 'Newsletter Classic', category: 'Newsletter', description: 'A clean newsletter layout with hero image and CTA.', thumbnail: 'https://via.placeholder.com/600x300' },
-    { id: 't2', title: 'Product Promo', category: 'Promotional', description: 'Bold product-centric promo template with big CTA.', thumbnail: 'https://via.placeholder.com/600x300' },
-    { id: 't3', title: 'Event Invite', category: 'Invitation', description: 'Invite template for webinars & events.', thumbnail: 'https://via.placeholder.com/600x300' },
-    { id: 't4', title: 'Digest', category: 'Newsletter', description: 'Short digest with multiple cards and links.', thumbnail: 'https://via.placeholder.com/600x300' },
-    { id: 't5', title: 'Sale Banner', category: 'Promotional', description: 'Header-first sale focused template.', thumbnail: 'https://via.placeholder.com/600x300' },
-]
+import PREDEFINED_TEMPLATES from '../../data/predefinedTemplates'
+import { useRouter } from '@tanstack/react-router'
 
 export default function TemplatesPage() {
     const [query, setQuery] = useState('')
     const [category, setCategory] = useState('All')
 
-    const categories = useMemo(() => ['All', ...Array.from(new Set(TEMPLATES.map((t) => t.category)))], [])
+    const categories = useMemo(() => ['All', ...Array.from(new Set(PREDEFINED_TEMPLATES.map((t) => t.category).filter(Boolean)))], [])
 
     const filtered = useMemo(() => {
-        return TEMPLATES.filter((t) => (category === 'All' || t.category === category) && (t.title.toLowerCase().includes(query.toLowerCase()) || t.description.toLowerCase().includes(query.toLowerCase())))
+        return PREDEFINED_TEMPLATES.filter((t) => (category === 'All' || t.category === category || !t.category) && (t.title.toLowerCase().includes(query.toLowerCase()) || (t.description || '').toLowerCase().includes(query.toLowerCase())))
     }, [query, category])
 
+    const router = useRouter()
+
     function openTemplate(t: any) {
-        alert(`Load template: ${t.title} into builder`)
+        try {
+            // store selected template in localStorage so builder can pick it up on load
+            if (t.data) {
+                localStorage.setItem('selectedTemplate', JSON.stringify(t.data))
+            } else {
+                localStorage.setItem('selectedTemplate', JSON.stringify({ time: Date.now(), blocks: [], version: '2.30.8' }))
+            }
+        } catch (err) {
+            console.warn('Could not store template:', err)
+        }
+
+        router.navigate({ to: '/builder' })
     }
 
     return (

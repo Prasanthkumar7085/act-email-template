@@ -1,7 +1,8 @@
-import React, { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { buildEmailFromEditor } from '../../lib/renderTemplate';
 import BuilderHeader from './BuilderHeader';
 import BuilderWorkspace from './BuilderWorkspace';
-import { generateEmailHTML } from './emailTemplates';
+import { useEffect } from 'react';
 
 interface EditorData {
     time: number;
@@ -53,8 +54,8 @@ export default function BuilderPage() {
     const [pageLayouts, setPageLayouts] = useState<PageLayout[]>([{
         background: '#ffffff',
         margins: { top: 40, right: 0, bottom: 0, left: 0 },
-        width: 600,
-        maxWidth: 600,
+        width: 900,
+        maxWidth: 900,
         borderRadius: 8,
         padding: { top: 40, right: 40, bottom: 40, left: 40 }
         , height: 800
@@ -75,18 +76,35 @@ export default function BuilderPage() {
         setEditorData(data);
     };
 
+    // On mount, check if a template was selected from the Templates screen
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem('selectedTemplate')
+            if (raw) {
+                const parsed = JSON.parse(raw)
+                if (parsed) {
+                    setEditorData(parsed)
+                }
+                localStorage.removeItem('selectedTemplate')
+            }
+        } catch (err) {
+            console.warn('Failed to load selected template from storage', err)
+        }
+    }, [])
+
     const clearCanvas = () => {
         setEditorData({ time: Date.now(), blocks: [], version: '2.30.8' });
 
     };
 
-    const exportHtml = () => {
-        const html = generateEmailHTML(editorData);
+    const exportHtml = async (view?: 'desktop' | 'mobile') => {
+        const usedView = view || activeView || 'desktop'
+        const html = await buildEmailFromEditor(editorData, usedView)
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'email-template.html';
+        a.download = `email-template-${usedView}.html`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -108,8 +126,9 @@ export default function BuilderPage() {
         URL.revokeObjectURL(url);
     };
 
-    const openPreview = () => {
-        setPreviewHtml(generateEmailHTML(editorData));
+    const openPreview = async () => {
+        const html = await buildEmailFromEditor(editorData, activeView)
+        setPreviewHtml(html)
     };
 
     const updatePageLayout = (partial: Partial<PageLayout>) => {
@@ -126,11 +145,12 @@ export default function BuilderPage() {
 
     const handleChangeEditorjsData = useCallback(
         (content: any, pageIndex: number) => {
-            const pageWiseEditorBlocks = [...editorData.blocks];
-            pageWiseEditorBlocks[pageIndex] = content;
-            setEditorData({ ...editorData, blocks: pageWiseEditorBlocks });
+            setEditorData(prev => ({
+                ...prev,
+                blocks: content.blocks
+            }));
         },
-        [editorData]
+        []
     );
 
     return (
