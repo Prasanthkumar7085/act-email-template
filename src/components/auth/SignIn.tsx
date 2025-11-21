@@ -26,14 +26,11 @@ const SignIn: React.FC = () => {
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
 
-        // Email validation
         if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
         } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
             newErrors.email = 'Email format is invalid';
         }
-
-        // Password validation
         if (!formData.password) {
             newErrors.password = 'Password is required';
         } else if (formData.password.length < 8) {
@@ -51,7 +48,6 @@ const SignIn: React.FC = () => {
             [name]: value
         }));
 
-        // Clear error when user starts typing
         if (errors[name as keyof FormErrors]) {
             setErrors(prev => ({
                 ...prev,
@@ -70,9 +66,9 @@ const SignIn: React.FC = () => {
         setIsSubmitting(true);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 800));
             router.navigate({
-                to: '/builder'
+                to: '/templates'
             })
         } catch (error) {
             console.error('Sign in error:', error);
@@ -117,12 +113,6 @@ const SignIn: React.FC = () => {
                                 Email Template
                             </h1>
                         </div>
-                        <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                            Welcome Back
-                        </h2>
-                        <p className="text-gray-600">
-                            Sign in to your account to continue building amazing email templates
-                        </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -273,7 +263,7 @@ const SignIn: React.FC = () => {
                 {/* Additional Info */}
                 <div className="text-center mt-6">
                     <p className="text-white text-sm opacity-80">
-                        Build beautiful email templates with our drag-and-drop editor
+                        Sign in to your account to continue building amazing email templates
                     </p>
                 </div>
             </div>

@@ -1,110 +1,195 @@
-import React, { useRef, useState } from 'react'
-import Palette from './Palette'
-import EditorJSComponent from '../EditorJs'
-import Toolbar from './Toolbar'
-import PropertiesPanel from './PropertiesPanel'
-import { generateEmailHTML } from './emailTemplates'
+import React, { useCallback, useRef, useState } from 'react';
+import BuilderHeader from './BuilderHeader';
+import BuilderWorkspace from './BuilderWorkspace';
+import { generateEmailHTML } from './emailTemplates';
+
+interface EditorData {
+    time: number;
+    blocks: any[];
+    version: string;
+}
+
+interface PageLayout {
+    background: string;
+    margins: {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+    };
+    width: number;
+    maxWidth: number;
+    borderRadius: number;
+    padding: {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+    };
+    height?: number;
+}
+
+interface ProfessionalOptions {
+    fontFamily: string;
+    baseColor: string;
+    primaryColor: string;
+    secondaryColor: string;
+    textColor: string;
+    borderRadius: number;
+    buttonStyle: 'flat' | 'rounded' | 'outline';
+    spacing: number;
+}
 
 export default function BuilderPage() {
-    const [editorData, setEditorData] = useState<any>({ time: Date.now(), blocks: [], version: '2.30.8' })
-    const editorRef = useRef<Map<number, any>>(new Map())
-    const [previewHtml, setPreviewHtml] = useState<string | null>(null)
-    const [pageLayouts, setPageLayouts] = useState<any[]>([{ background: '#ffffff', margins: { top: 40, right: 0, bottom: 0, left: 0 } }])
-    const [professionalOptions, setProfessionalOptions] = useState({ fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto", baseColor: '#06b6d4' })
+    const [editorData, setEditorData] = useState<EditorData>({
+        time: Date.now(),
+        blocks: [],
+        version: '2.30.8'
+    });
 
-    function insert(type: 'header' | 'paragraph' | 'image' | 'list' | 'delimiter') {
-        const editor = editorRef.current?.get(0)
-        try {
-            if (!editor) return
-            if (type === 'header') editor.blocks.insert('header', { text: 'New heading' }, {}, editor.blocks.getBlocksCount())
-            if (type === 'paragraph') editor.blocks.insert('paragraph', { text: 'New paragraph' }, {}, editor.blocks.getBlocksCount())
-            if (type === 'image') editor.blocks.insert('image', { file: { url: 'https://via.placeholder.com/600x200' }, caption: '' }, {}, editor.blocks.getBlocksCount())
-            if (type === 'list') editor.blocks.insert('list', { style: 'unordered', items: ['List item'] }, {}, editor.blocks.getBlocksCount())
-            if (type === 'delimiter') editor.blocks.insert('delimiter', {}, {}, editor.blocks.getBlocksCount())
-        } catch (e) {
-            console.warn('Insert failed', e)
-        }
-    }
+    const editorRef = useRef<Map<number, any>>(new Map());
+    const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+    const [activeView, setActiveView] = useState<'desktop' | 'mobile'>('desktop');
+    const [pageLayouts, setPageLayouts] = useState<PageLayout[]>([{
+        background: '#ffffff',
+        margins: { top: 40, right: 0, bottom: 0, left: 0 },
+        width: 600,
+        maxWidth: 600,
+        borderRadius: 8,
+        padding: { top: 40, right: 40, bottom: 40, left: 40 }
+        , height: 800
+    }]);
 
-    function loadTemplate(data: any) {
-        setEditorData(data)
-    }
+    const [professionalOptions, setProfessionalOptions] = useState<ProfessionalOptions>({
+        fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        baseColor: '#06b6d4',
+        primaryColor: '#06b6d4',
+        secondaryColor: '#64748b',
+        textColor: '#1e293b',
+        borderRadius: 8,
+        buttonStyle: 'rounded',
+        spacing: 16
+    });
 
-    function clearCanvas() {
-        setEditorData({ time: Date.now(), blocks: [], version: '2.30.8' })
-        const editor = editorRef.current?.get(0)
-        try {
-            editor?.clear()
-        } catch (e) { }
-    }
+    const loadTemplate = (data: any) => {
+        setEditorData(data);
+    };
 
-    function exportHtml() {
-        const html = generateEmailHTML(editorData)
-        const blob = new Blob([html], { type: 'text/html' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'email-template.html'
-        a.click()
-        URL.revokeObjectURL(url)
-    }
+    const clearCanvas = () => {
+        setEditorData({ time: Date.now(), blocks: [], version: '2.30.8' });
 
-    function openPreview() {
-        setPreviewHtml(generateEmailHTML(editorData))
-    }
+    };
 
-    function updatePageLayout(partial: any) {
+    const exportHtml = () => {
+        const html = generateEmailHTML(editorData);
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'email-template.html';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const exportJson = () => {
+        const data = {
+            editorData,
+            pageLayouts,
+            professionalOptions,
+            exportDate: new Date().toISOString()
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'email-template.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const openPreview = () => {
+        setPreviewHtml(generateEmailHTML(editorData));
+    };
+
+    const updatePageLayout = (partial: Partial<PageLayout>) => {
         setPageLayouts((prev) => {
-            const copy = [...prev]
-            copy[0] = { ...copy[0], ...partial }
-            return copy
-        })
-    }
+            const copy = [...prev];
+            copy[0] = { ...copy[0], ...partial };
+            return copy;
+        });
+    };
+
+    const updateProfessionalOptions = (partial: Partial<ProfessionalOptions>) => {
+        setProfessionalOptions(prev => ({ ...prev, ...partial }));
+    };
+
+    const handleChangeEditorjsData = useCallback(
+        (content: any, pageIndex: number) => {
+            const pageWiseEditorBlocks = [...editorData.blocks];
+            pageWiseEditorBlocks[pageIndex] = content;
+            setEditorData({ ...editorData, blocks: pageWiseEditorBlocks });
+        },
+        [editorData]
+    );
 
     return (
-        <div className="min-h-[80vh] p-6">
-            <h2 className="text-2xl font-semibold mb-4">Email Template Builder</h2>
-            <div className="flex gap-4">
-                <div className="w-64">
-                    <Palette insert={insert} loadTemplate={loadTemplate} />
-                </div>
+        <div className="h-screen flex flex-col bg-gray-50">
+            <BuilderHeader
+                activeView={activeView}
+                setActiveView={(v) => setActiveView(v)}
+                openPreview={openPreview}
+                exportHtml={exportHtml}
+                exportJson={exportJson}
+                clearCanvas={clearCanvas}
+            />
 
-                <div className="flex-1 bg-white p-4 rounded shadow relative">
-                    <Toolbar onExport={exportHtml} onPreview={openPreview} onClear={clearCanvas} />
-                    <div className="mt-4" >
-                        <EditorJSComponent
-                            data={editorData}
-                            onChange={(d: any) => setEditorData(d)}
-                            pageIndex={0}
-                            editorRef={editorRef}
-                            pageLayouts={pageLayouts}
-                        />
-                    </div>
-                </div>
+            <BuilderWorkspace
+                editorData={editorData}
+                onEditorChange={handleChangeEditorjsData}
+                editorRef={editorRef}
+                pageLayouts={pageLayouts}
+                updatePageLayout={updatePageLayout}
+                professionalOptions={professionalOptions}
+                updateProfessionalOptions={updateProfessionalOptions}
+                activeView={activeView}
+                loadTemplate={loadTemplate}
+            />
 
-                <div className="w-80">
-                    <PropertiesPanel
-                        pageLayouts={pageLayouts}
-                        onUpdatePageLayout={(p: any) => updatePageLayout(p)}
-                        professionalOptions={professionalOptions}
-                        onUpdateProfessionalOptions={(p: any) => setProfessionalOptions((s) => ({ ...s, ...p }))}
-                    />
-                </div>
-            </div>
-
-            {previewHtml ? (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white max-w-3xl w-full max-h-[80vh] overflow-auto p-4 rounded">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-semibold">Preview</h3>
-                            <button className="px-3 py-1 bg-slate-700 text-white rounded" onClick={() => setPreviewHtml(null)}>
-                                Close
-                            </button>
+            {previewHtml && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">Email Preview</h3>
+                            <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={() => {
+                                        const blob = new Blob([previewHtml || ''], { type: 'text/html' });
+                                        const url = URL.createObjectURL(blob);
+                                        window.open(url, '_blank');
+                                    }}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
+                                >
+                                    Open in New Tab
+                                </button>
+                                <button
+                                    onClick={() => setPreviewHtml(null)}
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
-                        <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+                        <div className="flex-1 overflow-auto p-8 bg-gray-50">
+                            <div
+                                className="mx-auto bg-white shadow-lg rounded-lg overflow-hidden"
+                                style={{ maxWidth: '600px' }}
+                                dangerouslySetInnerHTML={{ __html: previewHtml || '' }}
+                            />
+                        </div>
                     </div>
                 </div>
-            ) : null}
+            )}
         </div>
     )
 }

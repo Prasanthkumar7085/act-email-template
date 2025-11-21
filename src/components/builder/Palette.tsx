@@ -45,24 +45,7 @@ export default function Palette({ insert, loadTemplate }: { insert: InsertFn; lo
                 ))}
             </div>
 
-            <h4 className="font-semibold mb-2">Insert Block</h4>
-            <div className="flex flex-col gap-2">
-                <button onClick={() => insert('header')} className="text-left px-3 py-2 bg-white rounded border hover:bg-slate-100">
-                    Header
-                </button>
-                <button onClick={() => insert('paragraph')} className="text-left px-3 py-2 bg-white rounded border hover:bg-slate-100">
-                    Paragraph
-                </button>
-                <button onClick={() => insert('image')} className="text-left px-3 py-2 bg-white rounded border hover:bg-slate-100">
-                    Image
-                </button>
-                <button onClick={() => insert('list')} className="text-left px-3 py-2 bg-white rounded border hover:bg-slate-100">
-                    List
-                </button>
-                <button onClick={() => insert('delimiter')} className="text-left px-3 py-2 bg-white rounded border hover:bg-slate-100">
-                    Divider
-                </button>
-            </div>
+
         </div>
     )
 }

@@ -20,11 +20,11 @@ interface EditorJSComponentProps {
 
 function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightChange, editorRef, pageLayouts }: EditorJSComponentProps) {
 
-    const BASE_PAGE_HEIGHT = 1123
+    const BASE_PAGE_HEIGHT = 800
     const MARGIN = 80;
 
     const params = useParams({ strict: false })
-    // simplified: we don't need react-router location here
+
     const pathname = window.location.pathname
     const isEditable = params?.responseId || params?.documentId || pathname.includes("create-workflow-template") || pathname.includes("all-templates-preview") || pathname.includes("workflow") ? true : false
 
@@ -188,11 +188,6 @@ function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightC
         setIsEditorReady(false)
         initializingRef.current = false
     }, [pageIndex, editorRef])
-
-    function inchesToPixels(inches: number, dpi: number = 96): number {
-        return inches * dpi;
-    }
-
 
     const initializeEditor = useCallback(async () => {
         if (initializingRef.current || !mountedRef.current) return
