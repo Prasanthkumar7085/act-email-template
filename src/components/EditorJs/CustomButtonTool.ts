@@ -1,209 +1,248 @@
-// tools/CustomButtonTool.ts
+// src/tools/ButtonTool/ButtonTool.t
+interface ButtonData {
+  text: string;
+  url: string;
+  style: "filled" | "outline" | "text";
+  color: string;
+  backgroundColor: string;
+  align: "left" | "center" | "right";
+  target: "_blank" | "_self";
+  size: "small" | "medium" | "large";
+}
 
-import { ToolConfig } from "@editorjs/editorjs";
-import { ButtonData } from "./toolsTypes";
-
-export class CustomButtonTool {
-  private api: any;
-  private data: ButtonData;
-  private nodes: { [key: string]: HTMLElement } = {};
-
-  static get toolbox(): { title: string; icon: string } {
+class ButtonTool {
+  static get toolbox() {
     return {
       title: "Button",
-      icon: '<svg width="17" height="17" viewBox="0 0 17 17" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 2.5l-8 8m0 0h5m-5 0v-5"/></svg>',
+      icon: `<svg width="17" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="8" width="18" height="8" rx="4" stroke="currentColor" stroke-width="2"/>
+              <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
+            </svg>`,
     };
   }
 
-  constructor({ data, api }: ToolConfig) {
-    this.api = api;
+  data: ButtonData;
+  wrapper: HTMLElement;
+  settingsWrapper?: HTMLElement;
+
+  constructor({ data }: { data?: ButtonData }) {
     this.data = {
-      text: data?.text || "Click Here",
-      url: data?.url || "#",
-      alignment: data?.alignment || "center",
-      style: data?.style || "primary",
-      backgroundColor: data?.backgroundColor || "#007bff",
-      textColor: data?.textColor || "#ffffff",
-      padding: data?.padding || "12px 24px",
-      borderRadius: data?.borderRadius || "4px",
-      type: "button",
+      text: data?.text || "Click Me",
+      url: data?.url || "https://example.com",
+      style: data?.style || "filled",
+      color: data?.color || "#ffffff",
+      backgroundColor: data?.backgroundColor || "#3b82f6",
+      align: data?.align || "left",
+      target: data?.target || "_blank",
+      size: data?.size || "medium",
     };
   }
 
-  render(): HTMLElement {
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText = `
-      text-align: ${this.data.alignment};
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border: 2px dashed #dee2e6;
-    `;
+  render() {
+    this.wrapper = document.createElement("div");
+    this.wrapper.classList.add("button-tool-wrapper");
 
     const button = document.createElement("a");
     button.href = this.data.url;
-    button.target = "_blank";
-    button.style.cssText = `
-      display: inline-block;
-      background-color: ${this.data.backgroundColor};
-      color: ${this.data.textColor};
-      padding: ${this.data.padding};
-      border-radius: ${this.data.borderRadius};
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    `;
+    button.target = this.data.target;
+    button.style.textDecoration = "none";
     button.textContent = this.data.text;
+    button.classList.add("button-tool", this.data.style, this.data.size);
+    button.style.color = this.data.color;
+    button.style.backgroundColor = this.data.backgroundColor;
+    button.style.textAlign = this.data.align as any;
 
-    // Add hover effect for preview
-    button.addEventListener("mouseenter", () => {
-      button.style.opacity = "0.8";
-      button.style.transform = "translateY(-1px)";
-    });
-    button.addEventListener("mouseleave", () => {
-      button.style.opacity = "1";
-      button.style.transform = "translateY(0)";
-    });
+    this.wrapper.appendChild(button);
+    this.wrapper.style.textAlign = this.data.align;
 
-    wrapper.appendChild(button);
-    this.nodes.wrapper = wrapper;
-
-    return wrapper;
+    return this.wrapper;
   }
 
-  renderSettings(): HTMLElement {
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText = `
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-    `;
+  renderSettings() {
+    const settings = document.createElement("div");
+    settings.classList.add("button-settings");
 
-    wrapper.innerHTML = `
-      <div style="display: grid; gap: 12px;">
-        <!-- Basic Settings -->
-        <div style="display: grid; gap: 8px;">
-          <label style="font-weight: 500; font-size: 12px; color: #495057;">BUTTON TEXT</label>
-          <input type="text" class="button-text" value="${this.data.text}" 
-                 style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" 
-                 placeholder="Enter button text">
+    const items = [
+      { icon: "⚙️", title: "Settings", callback: () => this.openSettings() },
+      {
+        icon: "↗",
+        title: "Open link",
+        callback: () => window.open(this.data.url, this.data.target),
+      },
+    ];
+
+    items.forEach((item) => {
+      const button = document.createElement("div");
+      button.classList.add("cdx-settings-button");
+      button.innerHTML = item.icon;
+      button.title = item.title;
+      button.onclick = item.callback;
+      settings.appendChild(button);
+    });
+
+    return settings;
+  }
+
+  openSettings() {
+    if (this.settingsWrapper && this.settingsWrapper.parentNode) {
+      this.settingsWrapper.parentNode.removeChild(this.settingsWrapper);
+      return;
+    }
+
+    this.settingsWrapper = document.createElement("div");
+    this.settingsWrapper.classList.add("button-settings-modal");
+    this.settingsWrapper.innerHTML = this.getSettingsHTML();
+
+    document.body.appendChild(this.settingsWrapper);
+
+    // Close on outside click
+    const close = (e: MouseEvent) => {
+      if (!this.settingsWrapper?.contains(e.target as Node)) {
+        this.settingsWrapper?.remove();
+        document.removeEventListener("click", close);
+      }
+    };
+    setTimeout(() => document.addEventListener("click", close), 0);
+
+    this.bindSettingEvents();
+  }
+
+  getSettingsHTML() {
+    return `
+      <div class="modal-content">
+        <h3>Button Settings</h3>
+
+        <label>Text</label>
+        <input type="text" class="btn-text" value="${this.data.text}" placeholder="Button text">
+
+        <label>URL</label>
+        <input type="url" class="btn-url" value="${this.data.url}" placeholder="https://">
+
+        <label>Style</label>
+        <select class="btn-style">
+          <option value="filled" ${this.data.style === "filled" ? "selected" : ""}>Filled</option>
+          <option value="outline" ${this.data.style === "outline" ? "selected" : ""}>Outline</option>
+          <option value="text" ${this.data.style === "text" ? "selected" : ""}>Text</option>
+        </select>
+
+        <label>Size</label>
+        <select class="btn-size">
+          <option value="small" ${this.data.size === "small" ? "selected" : ""}>Small</option>
+          <option value="medium" ${this.data.size === "medium" ? "selected" : ""}>Medium</option>
+          <option value="large" ${this.data.size === "large" ? "selected" : ""}>Large</option>
+        </select>
+
+        <label>Text Color</label>
+        <input type="color" class="btn-color" value="${this.data.color}">
+
+        <label>Background Color</label>
+        <input type="color" class="btn-bg" value="${this.data.backgroundColor}">
+
+        <label>Alignment</label>
+        <div class="align-buttons">
+          <button type="button" class="align-btn ${this.data.align === "left" ? "active" : ""}" data-align="left">Left</button>
+          <button type="button" class="align-btn ${this.data.align === "center" ? "active" : ""}" data-align="center">Center</button>
+          <button type="button" class="align-btn ${this.data.align === "right" ? "active" : ""}" data-align="right">Right</button>
         </div>
 
-        <div style="display: grid; gap: 8px;">
-          <label style="font-weight: 500; font-size: 12px; color: #495057;">BUTTON URL</label>
-          <input type="url" class="button-url" value="${this.data.url}" 
-                 style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" 
-                 placeholder="https://example.com">
-        </div>
-
-        <!-- Style Settings -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div style="display: grid; gap: 4px;">
-            <label style="font-weight: 500; font-size: 12px; color: #495057;">BACKGROUND</label>
-            <input type="color" class="button-bg-color" value="${this.data.backgroundColor}" 
-                   style="width: 100%; height: 40px; border: 1px solid #ddd; border-radius: 4px;">
-          </div>
-          <div style="display: grid; gap: 4px;">
-            <label style="font-weight: 500; font-size: 12px; color: #495057;">TEXT COLOR</label>
-            <input type="color" class="button-text-color" value="${this.data.textColor}" 
-                   style="width: 100%; height: 40px; border: 1px solid #ddd; border-radius: 4px;">
-          </div>
-        </div>
-
-        <!-- Advanced Settings -->
-        <div style="display: grid; gap: 8px;">
-          <label style="font-weight: 500; font-size: 12px; color: #495057;">ALIGNMENT</label>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="align-btn ${this.data.alignment === "left" ? "active" : ""}" data-align="left" 
-                    style="flex: 1; padding: 8px; border: 1px solid #ddd; background: ${this.data.alignment === "left" ? "#007bff" : "white"}; color: ${this.data.alignment === "left" ? "white" : "#333"}; border-radius: 4px;">
-              Left
-            </button>
-            <button type="button" class="align-btn ${this.data.alignment === "center" ? "active" : ""}" data-align="center" 
-                    style="flex: 1; padding: 8px; border: 1px solid #ddd; background: ${this.data.alignment === "center" ? "#007bff" : "white"}; color: ${this.data.alignment === "center" ? "white" : "#333"}; border-radius: 4px;">
-              Center
-            </button>
-            <button type="button" class="align-btn ${this.data.alignment === "right" ? "active" : ""}" data-align="right" 
-                    style="flex: 1; padding: 8px; border: 1px solid #ddd; background: ${this.data.alignment === "right" ? "#007bff" : "white"}; color: ${this.data.alignment === "right" ? "white" : "#333"}; border-radius: 4px;">
-              Right
-            </button>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div style="display: grid; gap: 4px;">
-            <label style="font-weight: 500; font-size: 12px; color: #495057;">PADDING</label>
-            <select class="button-padding" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-              <option value="8px 16px" ${this.data.padding === "8px 16px" ? "selected" : ""}>Small</option>
-              <option value="12px 24px" ${this.data.padding === "12px 24px" ? "selected" : ""}>Medium</option>
-              <option value="16px 32px" ${this.data.padding === "16px 32px" ? "selected" : ""}>Large</option>
-            </select>
-          </div>
-          <div style="display: grid; gap: 4px;">
-            <label style="font-weight: 500; font-size: 12px; color: #495057;">BORDER RADIUS</label>
-            <select class="button-radius" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-              <option value="0px" ${this.data.borderRadius === "0px" ? "selected" : ""}>Square</option>
-              <option value="4px" ${this.data.borderRadius === "4px" ? "selected" : ""}>Rounded</option>
-              <option value="25px" ${this.data.borderRadius === "25px" ? "selected" : ""}>Pill</option>
-            </select>
-          </div>
-        </div>
+        <label>Open in new tab</label>
+        <label class="switch">
+          <input type="checkbox" class="btn-target" ${this.data.target === "_blank" ? "checked" : ""}>
+          <span class="slider"></span>
+        </label>
       </div>
     `;
-
-    this.setupSettingsEvents(wrapper);
-    return wrapper;
   }
 
-  private setupSettingsEvents(wrapper: HTMLElement): void {
-    const textInput = wrapper.querySelector(".button-text") as HTMLInputElement;
-    const urlInput = wrapper.querySelector(".button-url") as HTMLInputElement;
-    const bgColorInput = wrapper.querySelector(
-      ".button-bg-color"
-    ) as HTMLInputElement;
-    const textColorInput = wrapper.querySelector(
-      ".button-text-color"
-    ) as HTMLInputElement;
-    const paddingSelect = wrapper.querySelector(
-      ".button-padding"
-    ) as HTMLSelectElement;
-    const radiusSelect = wrapper.querySelector(
-      ".button-radius"
-    ) as HTMLSelectElement;
-    const alignButtons = wrapper.querySelectorAll(".align-btn");
+  bindSettingEvents() {
+    const modal = this.settingsWrapper!;
+    const update = () => this.updateButton();
 
-    const updateHandler = () => this.updateButton();
+    modal.querySelector(".btn-text")?.addEventListener("input", (e) => {
+      this.data.text = (e.target as HTMLInputElement).value || "Button";
+      update();
+    });
 
-    textInput.addEventListener("input", updateHandler);
-    urlInput.addEventListener("input", updateHandler);
-    bgColorInput.addEventListener("input", updateHandler);
-    textColorInput.addEventListener("input", updateHandler);
-    paddingSelect.addEventListener("change", updateHandler);
-    radiusSelect.addEventListener("change", updateHandler);
+    modal.querySelector(".btn-url")?.addEventListener("input", (e) => {
+      this.data.url = (e.target as HTMLInputElement).value || "#";
+      update();
+    });
 
-    alignButtons.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const target = e.target as HTMLButtonElement;
-        this.data.alignment = target.dataset.align as any;
-        updateHandler();
+    modal.querySelector(".btn-style")?.addEventListener("change", (e) => {
+      this.data.style = (e.target as HTMLSelectElement).value as any;
+      update();
+    });
+
+    modal.querySelector(".btn-size")?.addEventListener("change", (e) => {
+      this.data.size = (e.target as HTMLSelectElement).value as any;
+      update();
+    });
+
+    modal.querySelector(".btn-color")?.addEventListener("input", (e) => {
+      this.data.color = (e.target as HTMLInputElement).value;
+      update();
+    });
+
+    modal.querySelector(".btn-bg")?.addEventListener("input", (e) => {
+      this.data.backgroundColor = (e.target as HTMLInputElement).value;
+      update();
+    });
+
+    modal.querySelectorAll(".align-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        modal
+          .querySelectorAll(".align-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        this.data.align = btn.getAttribute("data-align") as any;
+        update();
       });
+    });
+
+    modal.querySelector(".btn-target")?.addEventListener("change", (e) => {
+      this.data.target = (e.target as HTMLInputElement).checked
+        ? "_blank"
+        : "_self";
     });
   }
 
-  private updateButton(): void {
-    if (this.nodes.wrapper) {
-      const newButton = this.render();
-      this.nodes.wrapper.parentNode?.replaceChild(
-        newButton,
-        this.nodes.wrapper
-      );
-      this.nodes.wrapper = newButton;
-    }
+  updateButton() {
+    const button = this.wrapper.querySelector("a") as HTMLAnchorElement;
+    if (!button) return;
+
+    button.textContent = this.data.text;
+    button.href = this.data.url;
+    button.target = this.data.target;
+
+    // Remove old classes
+    button.className = "button-tool";
+    button.classList.add(this.data.style, this.data.size);
+
+    button.style.color = this.data.color;
+    button.style.backgroundColor = this.data.backgroundColor;
+    button.style.borderColor =
+      this.data.style === "outline" ? this.data.backgroundColor : "";
+    button.style.textAlign = this.data.align as any;
+
+    this.wrapper.style.textAlign = this.data.align;
   }
 
-  save(): ButtonData {
+  save() {
     return this.data;
   }
+
+  static get sanitize() {
+    return {
+      text: {},
+      url: {},
+      style: {},
+      color: {},
+      backgroundColor: {},
+      align: {},
+      target: {},
+      size: {},
+    };
+  }
 }
+
+export default ButtonTool;

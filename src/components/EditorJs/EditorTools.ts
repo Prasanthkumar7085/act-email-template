@@ -16,7 +16,7 @@ import CustomImageTool from "./CustomImageTool";
 import CustomTableTool from "./CustomTableTool";
 import { HorizontalLineTool } from "./CustomHorizontalLineTool";
 import { CustomLayoutTool } from "./CustomLayoutTool";
-import { CustomButtonTool } from "./CustomButtonTool";
+import ButtonTool from "./CustomButtonTool";
 // import IndentTune from "./CustomIndentTool";
 import Layout from "editorjs-layout";
 import { SocialMediaTool } from "./CustomSocialMedialTool";
@@ -280,10 +280,10 @@ export function configureEditorTools({
     //   shortcut: "CMD+ALT+G",
     // },
 
-    // button: {
-    //   class: CustomButtonTool,
-    //   shortcut: "CMD+ALT+B",
-    // },
+    button: {
+      class: ButtonTool,
+      shortcut: "CMD+ALT+B",
+    },
     // social: {
     //   class: SocialMediaTool,
     //   shortcut: "CMD+ALT+S",
