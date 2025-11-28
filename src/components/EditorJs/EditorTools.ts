@@ -15,31 +15,114 @@ import { CustomHeaderTool } from "./CustomHeaderTool";
 import CustomImageTool from "./CustomImageTool";
 import CustomTableTool from "./CustomTableTool";
 import { HorizontalLineTool } from "./CustomHorizontalLineTool";
-import { CustomLayoutTool } from "./CustomLayoutTool";
 import ButtonTool from "./CustomButtonTool";
-// import IndentTune from "./CustomIndentTool";
 import Layout from "editorjs-layout";
-import { SocialMediaTool } from "./CustomSocialMedialTool";
+import CustomColumnsTool from "./CustomLayoutTool";
+import SocialMediaTool from "./CustomSocialMedialTool";
+
+// Import the custom columns tool
+
+// Define tools that can be used inside columns
+// Note: Keep this simpler than main tools to avoid nested complexity
+function getColumnTools(responseId: any, isEditable: any) {
+  return {
+    header: {
+      class: CustomHeaderTool,
+      inlineToolbar: true,
+      config: {
+        placeholder: "Enter a header",
+        levels: [1, 2, 3, 4, 5, 6],
+        defaultLevel: 2,
+        preserveBlank: true,
+        preserveTags: ["strong", "u", "em", "b", "i", "span"],
+        preserveStyle: true,
+        enableLineBreaks: false,
+        preserveMentions: true,
+        preserveClass: true,
+        preserveHtml: true,
+      },
+      sanitizer: {
+        span: {
+          class: true,
+          "data-user-id": true,
+          "data-field": true,
+          "data-custom-value": true,
+          style: true,
+        },
+      },
+    },
+    paragraph: {
+      class: Paragraph,
+      inlineToolbar: true,
+      config: {
+        preserveBlank: true,
+        preserveStyle: true,
+        enableLineBreaks: true,
+        preserveTags: ["strong", "u", "em", "b", "i", "span"],
+        preserveHtml: true,
+        preserveMentions: true,
+        preserveClass: true,
+      },
+      sanitizer: {
+        span: {
+          class: true,
+          "data-user-id": true,
+          "data-field": true,
+          "data-custom-value": true,
+          "data-field-label": true,
+          style: true,
+        },
+      },
+    },
+    list: {
+      class: EditorjsList,
+      inlineToolbar: true,
+      config: {
+        defaultStyle: "unordered",
+        preserveMentions: true,
+      },
+    },
+    image: {
+      class: CustomImageTool,
+      config: {
+        responseId,
+        captionPlaceholder: "Image caption",
+        withBorder: true,
+        withBackground: true,
+        stretched: true,
+        enableResizing: true,
+        isEditable,
+        uploader: {
+          uploadByFile(file: File) {
+            return onImageUpload?.(file);
+          },
+        },
+      },
+    },
+    delimiter: {
+      class: Delimiter,
+    },
+    textStyles: {
+      class: TextColorTool,
+    },
+    underline: Underline,
+    marker: {
+      class: Marker,
+    },
+    inlineCode: {
+      class: InlineCode,
+    },
+  };
+}
 
 export function configureEditorTools({
   responseId,
-  onImageUpload,
-  setInlineFieldPropertiesSectionVisible,
-  isInlineFieldPropertiesSectionVisible,
-  documentUsers,
-  searchParams,
-  isUserFinishedDocument,
-  setFormFieldsByPage,
-  formFieldsByPage,
-  pageIndex,
-  setPageWiseEditorBlocks,
-  pageWiseEditorBlocks,
   setOpenTableProperties,
   openTableProperties,
   isEditable,
-  defaultDateFormat,
-  emailForPublicDocumentView,
-  currentDocumentResponse,
+  EditorJS, // Add EditorJS library as parameter
+  onImageUpload, // Add missing parameters
+  pageIndex, // Add missing parameters
 }: any) {
   return {
     header: {
@@ -136,37 +219,22 @@ export function configureEditorTools({
         },
       },
     },
-    // paragraphWithInput: {
-    //   shortcut: "CMD+ALT+I",
-    //   class: CustomParagraphWithInput,
-    //   inlineToolbar: true,
-    //   config: {
-    //     responseId,
-    //     setInlineFieldPropertiesSectionVisible,
-    //     isInlineFieldPropertiesSectionVisible,
-    //     documentUsers,
-    //     searchParams,
-    //     isUserFinishedDocument,
-    //     setFormFieldsByPage,
-    //     formFieldsByPage,
-    //     pageIndex,
-    //     setPageWiseEditorBlocks,
-    //     pageWiseEditorBlocks,
-    //   },
-    // },
+
     delimiter: {
       class: Delimiter,
       tunes: ["alignment", "indentTune"],
     },
-    // code: Code,
+
     textStyles: {
       class: TextColorTool,
     },
+
     underline: Underline,
 
     indentTune: {
       class: IndentTune,
     },
+
     image: {
       class: CustomImageTool,
       shortcut: "CMD+SHIFT+I",
@@ -180,6 +248,7 @@ export function configureEditorTools({
         isEditable,
       },
     },
+
     table: {
       class: CustomTableTool,
       shortcut: "CMD+ALT+T",
@@ -200,59 +269,7 @@ export function configureEditorTools({
         preserveMentions: true,
       },
     },
-    // mention: {
-    //   class: MentionInlineTool,
-    //   config: {
-    //     preserveHtml: true,
-    //     sanitizer: {
-    //       span: {
-    //         class: true,
-    //         "data-user-id": true,
-    //         "data-field": true,
-    //         "data-custom-value": true,
-    //         style: true,
-    //       },
-    //     },
-    //     emailForPublicDocumentView,
-    //     documentStatus: "Draft",
-    //     users: documentUsers || [],
-    //     placeholderText: "Enter value",
-    //     allowCustomInput: true,
-    //     defaultDateFormat,
-    //     company_id:
-    //       currentDocumentResponse?.company_id?._id ||
-    //       currentDocumentResponse?.company_id,
-    //     selectedUser: {
-    //       default: true,
-    //       e_signature_required: true,
-    //       value: "SENDER",
-    //       name: "Prasanth mpk Kumar 23",
-    //       full_name: "Prasanth mpk Kumar 23",
-    //       email: "prasanth.m@orotron.com",
-    //       first_name: "Prasanth mpk",
-    //       last_name: "Kumar 23",
-    //       phone: "919052722415",
-    //       company_name: "New IT",
-    //       type: "SENDER",
-    //       user_type: "SIGNER",
-    //       has_approval_access: false,
-    //       is_cc: false,
-    //       e_signature_order: 0,
-    //       e_signature_verified: false,
-    //       color: "#F754A2",
-    //       role: "sender",
-    //       address: "ffdfdfdfddff",
-    //       entity_data_id: null,
-    //       title: "Prasanth Kumar Morcha",
-    //       document_completed: false,
-    //       last_verified_on: null,
-    //       terms_and_conditions: {
-    //         accepted: false,
-    //       },
-    //       _id: "68a7ecad444f97d676645797",
-    //     },
-    //   },
-    // },
+
     horizontalLine: {
       class: HorizontalLineTool,
       tunes: ["indentTune"],
@@ -264,26 +281,37 @@ export function configureEditorTools({
         preserveBlank: true,
       },
     },
+
     alignment: {
       class: AlignmentTune,
     },
+
     marker: {
       class: Marker,
       shortcut: "CMD+ALT+M",
     },
+
     inlineCode: {
       class: InlineCode,
       shortcut: "CMD+ALT+K",
     },
-    // layout: {
-    //   class: CustomLayoutTool,
-    //   shortcut: "CMD+ALT+G",
-    // },
 
     button: {
       class: ButtonTool,
       shortcut: "CMD+ALT+B",
     },
+
+    columns: {
+      class: CustomColumnsTool,
+      config: {
+        EditorJsLibrary: EditorJS,
+        tools: getColumnTools(responseId, isEditable),
+        enableLayoutEditing: true,
+        enableLayoutSaving: true,
+      },
+      shortcut: "CMD+ALT+C",
+    },
+
     // social: {
     //   class: SocialMediaTool,
     //   shortcut: "CMD+ALT+S",

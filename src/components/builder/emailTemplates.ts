@@ -16,7 +16,6 @@ interface EditorJSData {
 
 const sanitizeHTML = (html: string): string => {
   // For production, consider using DOMPurify
-  // This is a basic implementation
   return html;
 };
 
@@ -51,6 +50,35 @@ const getBlockStyles = (block: EditorJSBlock): string => {
   );
 
   return styles.length > 0 ? ` style="${styles.join(" ")}"` : "";
+};
+
+/**
+ * Get style object (for easier manipulation)
+ */
+const getStyleObject = (block: EditorJSBlock): Record<string, string> => {
+  const styles: Record<string, string> = {};
+
+  const alignment = block.tunes?.alignment?.alignment;
+  if (alignment && alignment !== "left") {
+    styles["text-align"] = alignment;
+  }
+
+  const indentLevel = block.tunes?.indentTune?.indentLevel;
+  if (indentLevel && indentLevel > 0) {
+    styles["margin-left"] = `${indentLevel * 40}px`;
+  }
+
+  return styles;
+};
+
+/**
+ * Convert style object to string
+ */
+const styleObjectToString = (styles: Record<string, string>): string => {
+  const styleStr = Object.entries(styles)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join("; ");
+  return styleStr ? ` style="${styleStr}"` : "";
 };
 
 /**
@@ -93,7 +121,9 @@ const convertList = (block: EditorJSBlock): string => {
     listAttrs = ` type="${type}"`;
   }
 
-  const blockStyles = getBlockStyles(block);
+  // Get style object and add to it
+  const styleObj = getStyleObject(block);
+  const styleStr = styleObjectToString(styleObj);
 
   // Recursively render list items
   const renderItems = (items: any[]): string => {
@@ -114,7 +144,7 @@ const convertList = (block: EditorJSBlock): string => {
       .join("");
   };
 
-  return `<${listTag}${listAttrs}${blockStyles}>${renderItems(items)}</${listTag}>`;
+  return `<${listTag}${listAttrs}${styleStr}>${renderItems(items)}</${listTag}>`;
 };
 
 /**
@@ -132,6 +162,9 @@ const convertTable = (block: EditorJSBlock): string => {
     return "";
   }
 
+  // Get alignment and indent
+  const styleObj = getStyleObject(block);
+
   // Extract table-level styles
   const tableStyles = styles.table || {};
   const cellStyles = styles.cells || {};
@@ -142,8 +175,9 @@ const convertTable = (block: EditorJSBlock): string => {
     return str.replace(/([A-Z])/g, "-$1").toLowerCase();
   };
 
-  // Build table style string
-  const tableStyleStr = Object.entries(tableStyles)
+  // Merge block styles with table styles
+  const mergedTableStyles = { ...styleObj, ...tableStyles };
+  const tableStyleStr = Object.entries(mergedTableStyles)
     .map(([key, value]) => `${camelToKebab(key)}: ${value}`)
     .join("; ");
 
@@ -249,13 +283,13 @@ const convertImage = (block: EditorJSBlock): string => {
     return "";
   }
 
-  const styles: string[] = [];
+  const imgStyles: string[] = [];
 
   if (dimensions.width) {
-    styles.push(`width: ${dimensions.width}`);
+    imgStyles.push(`width: ${dimensions.width}`);
   }
   if (dimensions.height) {
-    styles.push(`height: ${dimensions.height}`);
+    imgStyles.push(`height: ${dimensions.height}`);
   }
 
   // Handle transformations
@@ -271,14 +305,17 @@ const convertImage = (block: EditorJSBlock): string => {
   }
 
   if (transforms.length > 0) {
-    styles.push(`transform: ${transforms.join(" ")}`);
+    imgStyles.push(`transform: ${transforms.join(" ")}`);
   }
 
-  const styleAttr = styles.length > 0 ? ` style="${styles.join("; ")}"` : "";
-  const blockStyles = getBlockStyles(block);
+  const imgStyleAttr =
+    imgStyles.length > 0 ? ` style="${imgStyles.join("; ")}"` : "";
 
-  let html = `<figure${blockStyles}>`;
-  html += `<img src="${file.url}" alt="${caption}"${styleAttr} />`;
+  // Get figure styles (alignment and indent)
+  const figureStyles = getBlockStyles(block);
+
+  let html = `<figure${figureStyles}>`;
+  html += `<img src="${file.url}" alt="${caption}"${imgStyleAttr} />`;
 
   if (caption) {
     html += `<figcaption>${sanitizeHTML(caption)}</figcaption>`;
@@ -320,10 +357,18 @@ const convertCode = (block: EditorJSBlock): string => {
 };
 
 /**
- * Convert delimiter block to HTML
+ * Convert delimiter block to HTML (shows *** like in editor)
  */
-const convertDelimiter = (): string => {
-  return "<hr />";
+const convertDelimiter = (block: EditorJSBlock): string => {
+  const styleObj = getStyleObject(block);
+  styleObj["text-align"] = styleObj["text-align"] || "center";
+  styleObj["margin"] = "32px 0";
+  styleObj["font-size"] = "30px";
+  styleObj["line-height"] = "1";
+  styleObj["letter-spacing"] = "0.2em";
+
+  const styleStr = styleObjectToString(styleObj);
+  return `<div${styleStr}>* * *</div>`;
 };
 
 /**
@@ -357,6 +402,225 @@ const convertEmbed = (block: EditorJSBlock): string => {
 };
 
 /**
+ * Convert horizontal line block to HTML
+ */
+const convertHorizontalLine = (block: EditorJSBlock): string => {
+  const {
+    style = "solid",
+    thickness = 2,
+    color = "#000000",
+    alignment = "center",
+  } = block.data;
+
+  const styleObj = getStyleObject(block);
+
+  styleObj["border"] = "none";
+  styleObj["border-top"] = `${thickness}px ${style} ${color}`;
+  styleObj["margin"] = "20px 0";
+  styleObj["width"] = "100%";
+
+  if (alignment === "center") {
+    styleObj["margin-left"] = "auto";
+    styleObj["margin-right"] = "auto";
+  } else if (alignment === "left") {
+    styleObj["margin-right"] = "auto";
+    styleObj["margin-left"] = styleObj["margin-left"] || "0";
+  } else if (alignment === "right") {
+    styleObj["margin-left"] = "auto";
+    styleObj["margin-right"] = "0";
+  }
+
+  const styleStr = styleObjectToString(styleObj);
+  return `<hr${styleStr} />`;
+};
+
+/**
+ * Convert button block to HTML
+ */
+const convertButton = (block: EditorJSBlock): string => {
+  const {
+    text = "Button",
+    url = "#",
+    variant = "primary",
+    alignment = "left",
+  } = block.data;
+
+  // Get block-level styles (indent, but not alignment - we handle that separately for buttons)
+  const styleObj = getStyleObject(block);
+  const indentStyle = styleObj["margin-left"]
+    ? `margin-left: ${styleObj["margin-left"]};`
+    : "";
+
+  // Button color schemes
+  const variantStyles: Record<string, string> = {
+    primary: "background-color: #3b82f6; color: white;",
+    secondary: "background-color: #6b7280; color: white;",
+    outline:
+      "background-color: transparent; color: #3b82f6; border: 2px solid #3b82f6;",
+  };
+
+  const buttonStyle = variantStyles[variant] || variantStyles.primary;
+
+  const containerStyle = `text-align: ${alignment}; margin: 20px 0; ${indentStyle}`;
+
+  const fullButtonStyle = [
+    buttonStyle,
+    "padding: 12px 24px",
+    "border-radius: 6px",
+    "text-decoration: none",
+    "display: inline-block",
+    "font-weight: 500",
+    "font-size: 14px",
+    "transition: opacity 0.2s",
+    "cursor: pointer",
+  ].join("; ");
+
+  return `<div style="${containerStyle}"><a href="${url}" style="${fullButtonStyle}">${sanitizeHTML(text)}</a></div>`;
+};
+
+/**
+ * Convert social media block to HTML
+ */
+const convertSocial = (block: EditorJSBlock): string => {
+  const { service, url, embed, caption = "" } = block.data;
+
+  if (!url || !service) {
+    return "";
+  }
+
+  const styleObj = getStyleObject(block);
+  styleObj["margin"] = "20px 0";
+  const containerStyle = styleObjectToString(styleObj);
+
+  let html = `<div${containerStyle}>`;
+
+  // Service badge
+  const serviceIcons: Record<string, string> = {
+    youtube: "▶️",
+    twitter: "🐦",
+    instagram: "📷",
+    facebook: "👥",
+    tiktok: "🎵",
+    linkedin: "💼",
+    pinterest: "📌",
+    reddit: "🔴",
+    vimeo: "🎬",
+  };
+
+  const icon = serviceIcons[service] || "🔗";
+
+  html += `<div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #3b82f6; color: white; border-radius: 6px; font-size: 12px; font-weight: 500; margin-bottom: 12px; text-transform: capitalize;">`;
+  html += `${icon} ${service}`;
+  html += `</div>`;
+
+  // Embed container
+  if (service === "youtube" || service === "vimeo") {
+    html += `<div style="position: relative; width: 100%; padding-bottom: 56.25%; background: #000; border-radius: 8px; overflow: hidden;">`;
+    html += `<iframe src="${embed}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allowfullscreen></iframe>`;
+    html += `</div>`;
+  } else {
+    // Link card
+    html += `<a href="${url}" target="_blank" rel="noopener noreferrer" style="display: block; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; text-align: center;">`;
+    html += `<div style="font-size: 48px; margin-bottom: 12px;">${icon}</div>`;
+    html += `<div style="font-size: 18px; font-weight: 600; text-transform: capitalize; margin-bottom: 8px;">View on ${service}</div>`;
+    html += `<div style="font-size: 12px; opacity: 0.8; word-break: break-all;">${url}</div>`;
+    html += `</a>`;
+  }
+
+  // Caption
+  if (caption) {
+    html += `<div style="font-size: 14px; color: #4b5563; text-align: center; font-style: italic; margin-top: 12px;">${sanitizeHTML(caption)}</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+};
+
+/**
+ * Convert columns block to HTML (clean, no visible borders)
+ */
+const convertColumns = (block: EditorJSBlock): string => {
+  const { cols = [], numberOfColumns = 2 } = block.data;
+
+  if (!cols || cols.length === 0) {
+    return "";
+  }
+
+  const styleObj = getStyleObject(block);
+  styleObj["display"] = "flex";
+  styleObj["gap"] = "20px";
+  styleObj["margin"] = "20px 0";
+
+  const containerStyle = styleObjectToString(styleObj);
+
+  let html = `<div${containerStyle}>`;
+
+  // Process each column
+  for (let i = 0; i < numberOfColumns; i++) {
+    const columnBlocks = cols[i]?.blocks || [];
+
+    // Clean column styling - no borders in preview
+    html += `<div style="flex: 1;">`;
+
+    // Convert blocks inside column
+    columnBlocks.forEach((colBlock: EditorJSBlock) => {
+      try {
+        const blockHtml = convertBlockToHTML(colBlock);
+        if (blockHtml) {
+          html += blockHtml;
+        }
+      } catch (error) {
+        console.error(`Error converting block in column:`, error);
+      }
+    });
+
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+};
+
+/**
+ * Convert a single block to HTML (used for recursion in columns)
+ */
+const convertBlockToHTML = (block: EditorJSBlock): string => {
+  switch (block.type) {
+    case "paragraph":
+      return convertParagraph(block);
+    case "header":
+      return convertHeader(block);
+    case "list":
+      return convertList(block);
+    case "table":
+      return convertTable(block);
+    case "image":
+      return convertImage(block);
+    case "quote":
+      return convertQuote(block);
+    case "code":
+      return convertCode(block);
+    case "delimiter":
+      return convertDelimiter(block);
+    case "raw":
+      return convertRaw(block);
+    case "embed":
+      return convertEmbed(block);
+    case "horizontalLine":
+      return convertHorizontalLine(block);
+    case "button":
+      return convertButton(block);
+    case "social":
+      return convertSocial(block);
+    case "columns":
+      return convertColumns(block);
+    default:
+      console.warn(`Unknown block type: ${block.type}`);
+      return "";
+  }
+};
+
+/**
  * Main converter: EditorJS blocks to HTML
  */
 export const convertEditorJSToHTML = (data: any): string => {
@@ -381,54 +645,7 @@ export const convertEditorJSToHTML = (data: any): string => {
 
   editorData.blocks.forEach((block: EditorJSBlock) => {
     try {
-      let html = "";
-
-      switch (block.type) {
-        case "paragraph":
-          html = convertParagraph(block);
-          break;
-
-        case "header":
-          html = convertHeader(block);
-          break;
-
-        case "list":
-          html = convertList(block);
-          break;
-
-        case "table":
-          html = convertTable(block);
-          break;
-
-        case "image":
-          html = convertImage(block);
-          break;
-
-        case "quote":
-          html = convertQuote(block);
-          break;
-
-        case "code":
-          html = convertCode(block);
-          break;
-
-        case "delimiter":
-          html = convertDelimiter();
-          break;
-
-        case "raw":
-          html = convertRaw(block);
-          break;
-
-        case "embed":
-          html = convertEmbed(block);
-          break;
-
-        default:
-          console.warn(`Unknown block type: ${block.type}`);
-          html = "";
-      }
-
+      const html = convertBlockToHTML(block);
       if (html) {
         htmlBlocks.push(html);
       }
@@ -485,12 +702,19 @@ export const convertEditorJSToHTMLWithStyles = (
 
 .${wrapperClass} table {
   margin: 1.5em 0;
-  border-spacing: 0;
+  border-collapse: collapse;
+  width: 100%;
 }
 
 .${wrapperClass} th, .${wrapperClass} td {
   padding: 8px 12px;
   text-align: left;
+  border: 1px solid #e0e0e0;
+}
+
+.${wrapperClass} th {
+  background-color: #f5f5f5;
+  font-weight: 600;
 }
 
 .${wrapperClass} ul, .${wrapperClass} ol {
@@ -553,6 +777,28 @@ export const convertEditorJSToHTMLWithStyles = (
 
 .${wrapperClass} a:hover {
   text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* Button styles */
+.${wrapperClass} a[style*="padding: 12px 24px"] {
+  transition: opacity 0.2s;
+}
+
+.${wrapperClass} a[style*="padding: 12px 24px"]:hover {
+  opacity: 0.9;
+}
+
+/* Social media embeds */
+.${wrapperClass} iframe {
+  max-width: 100%;
+}
+
+/* Columns responsive */
+@media (max-width: 768px) {
+  .${wrapperClass} [style*="display: flex"] {
+    flex-direction: column !important;
+  }
 }
   `.trim();
 
@@ -566,25 +812,3 @@ export default {
   convertEditorJSToHTML,
   convertEditorJSToHTMLWithStyles,
 };
-
-/**
- * USAGE EXAMPLES:
- *
- * // Basic usage
- * import { convertEditorJSToHTML } from './editorjs-converter';
- * const html = convertEditorJSToHTML(editorData);
- *
- * // With CSS wrapper
- * import { convertEditorJSToHTMLWithStyles } from './editorjs-converter';
- * const styledHTML = convertEditorJSToHTMLWithStyles(editorData, {
- *   wrapperClass: 'pdf-content',
- *   includeCSS: true,
- *   customCSS: '.pdf-content { font-size: 14px; }'
- * });
- *
- * // In React component
- * const MyComponent = ({ pageBlocks }) => {
- *   const html = convertEditorJSToHTML(pageBlocks);
- *   return <div dangerouslySetInnerHTML={{ __html: html }} />;
- * };
- */

@@ -1,321 +1,369 @@
-// tools/CustomLayoutTool.ts
+import EditorJS from "@editorjs/editorjs";
 
-import { ToolConfig } from "@editorjs/editorjs";
-import { LayoutColumn, LayoutData } from "./toolsTypes";
+interface ColumnData {
+  cols: Array<{
+    blocks: any[];
+  }>;
+  numberOfColumns: number;
+}
 
-export class CustomLayoutTool {
+interface ColumnConfig {
+  EditorJS: typeof EditorJS;
+  tools: any;
+  defaultColumns?: number;
+  maxColumns?: number;
+}
+
+class CustomColumnsTool {
   private api: any;
-  private data: LayoutData;
-  private config: any;
-  private nodes: { [key: string]: HTMLElement } = {};
+  private readOnly: boolean;
+  private data: ColumnData;
+  private config: ColumnConfig;
+  private wrapper: HTMLElement | null = null;
+  private editors: EditorJS[] = [];
+  private columnWrappers: HTMLElement[] = [];
 
-  static get toolbox(): { title: string; icon: string } {
+  static get toolbox() {
     return {
-      title: "Layout",
-      icon: '<svg width="17" height="15" viewBox="0 0 17 15" xmlns="http://www.w3.org/2000/svg"><path d="M1 0h5v15H1V0zm10 0h5v15h-5V0z"/></svg>',
+      title: "Columns",
+      icon: `<svg width="17" height="15" viewBox="0 0 336 276" xmlns="http://www.w3.org/2000/svg">
+              <path d="M291 150V79c0-19-15-34-34-34H79c-19 0-34 15-34 34v42l67-44 81 72 56-29 42 30zm0 52l-43-30-56 30-81-67-66 39v23c0 19 15 34 34 34h178c17 0 31-13 34-29zM79 0h178c44 0 79 35 79 79v118c0 44-35 79-79 79H79c-44 0-79-35-79-79V79C0 35 35 0 79 0z"/>
+            </svg>`,
     };
   }
 
-  static get enableLineBreaks(): boolean {
+  static get isReadOnlySupported() {
     return true;
   }
 
-  constructor({ data, config, api }: ToolConfig) {
+  constructor({ data, config, api, readOnly }: any) {
     this.api = api;
-    this.config = config || {};
-    this.data = this.validateData(data);
-  }
-
-  private validateData(data: any): LayoutData {
-    const defaultData: LayoutData = {
-      columns: 2,
-      layout: "equal",
-      columnsData: [],
-      gap: "20px",
-      type: "layout",
+    this.readOnly = readOnly;
+    this.config = {
+      EditorJS: config?.EditorJS || EditorJS,
+      tools: config?.tools || {},
+      defaultColumns: config?.defaultColumns || 2,
+      maxColumns: config?.maxColumns || 4,
     };
 
-    if (!data) return defaultData;
-
-    // Ensure we have proper column data
-    const columnsData: LayoutColumn[] = Array.from(
-      { length: data.columns || 2 },
-      (_, index) => {
-        const existingColumn = data.columnsData?.[index];
-        return {
-          id: existingColumn?.id || `column-${index + 1}`,
-          content: existingColumn?.content || [],
-          width: this.getColumnWidth(
-            data.layout || "equal",
-            index,
-            data.columns || 2
-          ),
-        };
-      }
-    );
-
-    return {
-      columns: data.columns || 2,
-      layout: data.layout || "equal",
-      columnsData,
-      gap: data.gap || "20px",
-      type: "layout",
+    this.data = {
+      cols: data?.cols || this._createEmptyColumns(this.config.defaultColumns),
+      numberOfColumns: data?.numberOfColumns || this.config.defaultColumns,
     };
   }
 
-  private getColumnWidth(
-    layout: string,
-    index: number,
-    totalColumns: number
-  ): string {
-    switch (layout) {
-      case "aside":
-        return index === 0 ? "2fr" : "1fr";
-      case "featured":
-        return index === 0 ? "1fr" : "2fr";
-      default:
-        return "1fr";
-    }
+  private _createEmptyColumns(count: number): Array<{ blocks: any[] }> {
+    return Array.from({ length: count }, () => ({ blocks: [] }));
   }
 
   render(): HTMLElement {
-    const wrapper = document.createElement("div");
-    wrapper.className = "layout-container";
-
-    // Create the actual layout preview that users can interact with
-    const layoutPreview = document.createElement("div");
-    layoutPreview.className = "layout-preview";
-    layoutPreview.style.cssText = `
-      display: grid;
-      grid-template-columns: ${this.data.columnsData.map((col) => col.width).join(" ")};
-      gap: ${this.data.gap};
-      padding: 20px;
-      border: 2px dashed #e0e0e0;
-      border-radius: 8px;
-      background: #fafafa;
-      min-height: 200px;
+    this.wrapper = document.createElement("div");
+    this.wrapper.classList.add("custom-columns-tool");
+    this.wrapper.style.cssText = `
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      margin: 10px 0;
+      position: relative;
     `;
 
-    // Create columns with content areas
-    this.data.columnsData.forEach((column, index) => {
-      const columnElement = document.createElement("div");
-      columnElement.className = `layout-column column-${index + 1}`;
-      columnElement.style.cssText = `
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        background: white;
-        padding: 15px;
-        min-height: 150px;
-        display: flex;
-        flex-direction: column;
-      `;
+    // Initialize the columns array properly
+    if (!this.data.cols || this.data.cols.length < this.data.numberOfColumns) {
+      this.data.cols = this._createEmptyColumns(this.data.numberOfColumns);
+    }
 
-      const columnHeader = document.createElement("div");
-      columnHeader.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #eee;
-      `;
+    // Create column layout
+    this._renderColumns();
 
-      columnHeader.innerHTML = `
-        <strong style="color: #666;">Column ${index + 1}</strong>
-        <span style="font-size: 12px; color: #999;">${column.width}</span>
-      `;
+    return this.wrapper;
+  }
 
-      const contentArea = document.createElement("div");
-      contentArea.className = "column-content";
-      contentArea.style.cssText = `
+  private _renderColumns(): void {
+    if (!this.wrapper) return;
+
+    // Clear existing columns
+    this.columnWrappers.forEach((col) => {
+      if (col && col.parentNode) {
+        col.remove();
+      }
+    });
+    this.columnWrappers = [];
+
+    // Safely destroy existing editors
+    for (let i = 0; i < this.editors.length; i++) {
+      const editor = this.editors[i];
+      if (editor && editor.destroy) {
+        try {
+          const destroyPromise = editor.destroy();
+          // Only add catch if destroy returns a promise
+          if (destroyPromise && typeof destroyPromise.catch === "function") {
+            destroyPromise.catch((err: any) => {
+              console.error(`Error destroying editor ${i}:`, err);
+            });
+          }
+        } catch (err) {
+          console.error(`Error in destroy for editor ${i}:`, err);
+        }
+      }
+    }
+    this.editors = [];
+
+    // Ensure we have the right number of columns in data
+    while (this.data.cols.length < this.data.numberOfColumns) {
+      this.data.cols.push({ blocks: [] });
+    }
+
+    // Create columns
+    for (let i = 0; i < this.data.numberOfColumns; i++) {
+      const columnWrapper = document.createElement("div");
+      columnWrapper.classList.add("custom-column");
+      columnWrapper.style.cssText = `
         flex: 1;
+        border: 1px solid #e8e8eb;
+        border-radius: 8px;
+        padding: 15px;
+        background: #fafafa;
         min-height: 100px;
-        background: #f8f9fa;
+      `;
+
+      const editorHolder = document.createElement("div");
+      editorHolder.id = `column-editor-${Date.now()}-${i}`;
+      editorHolder.style.cssText = `
+        background: white;
         border-radius: 4px;
         padding: 10px;
-        font-size: 12px;
-        color: #666;
+        min-height: 80px;
       `;
 
-      if (column.content && column.content.length > 0) {
-        contentArea.innerHTML = `
-          <div style="text-align: center; padding: 20px;">
-            <div>✓ Content Added</div>
-            <small>${column.content.length} block(s)</small>
-          </div>
-        `;
-      } else {
-        contentArea.innerHTML = `
-          <div style="text-align: center; padding: 20px; color: #999;">
-            <div>Click to add content</div>
-            <small>Double-click to edit</small>
-          </div>
-        `;
+      columnWrapper.appendChild(editorHolder);
+      this.wrapper!.appendChild(columnWrapper);
+      this.columnWrappers.push(columnWrapper);
+
+      // Initialize editor for this column
+      setTimeout(
+        () => {
+          this._initializeColumnEditor(editorHolder.id, i);
+        },
+        100 * (i + 1)
+      ); // Stagger initialization to avoid conflicts
+    }
+  }
+
+  private _initializeColumnEditor(holderId: string, columnIndex: number): void {
+    try {
+      // Ensure the holder element still exists
+      const holderElement = document.getElementById(holderId);
+      if (!holderElement) {
+        console.warn(`Holder element ${holderId} not found`);
+        return;
       }
 
-      // Make content area interactive
-      contentArea.addEventListener("dblclick", () => {
-        this.editColumnContent(index);
+      const editor = new this.config.EditorJS({
+        holder: holderId,
+        tools: this.config.tools,
+        data: {
+          blocks: this.data.cols[columnIndex]?.blocks || [],
+        },
+        readOnly: this.readOnly,
+        minHeight: 0,
+        onChange: async () => {
+          if (!this.readOnly) {
+            try {
+              const savedData = await editor.save();
+              if (this.data.cols[columnIndex]) {
+                this.data.cols[columnIndex] = {
+                  blocks: savedData.blocks,
+                };
+              }
+            } catch (error) {
+              console.error("Error saving column data:", error);
+            }
+          }
+        },
+        onReady: () => {
+          // Editor is ready, store the reference
+          this.editors[columnIndex] = editor;
+        },
       });
+    } catch (error) {
+      console.error("Error initializing column editor:", error);
+    }
+  }
 
-      columnElement.appendChild(columnHeader);
-      columnElement.appendChild(contentArea);
-      layoutPreview.appendChild(columnElement);
-    });
+  private async _changeColumnCount(newCount: number): Promise<void> {
+    // Save current editor data before making changes
+    const savedData: any[] = [];
 
-    wrapper.appendChild(layoutPreview);
-    this.nodes.wrapper = wrapper;
+    for (let i = 0; i < this.editors.length; i++) {
+      const editor = this.editors[i];
+      if (editor && typeof editor.save === "function") {
+        try {
+          const data = await editor.save();
+          savedData[i] = data.blocks;
+        } catch (error) {
+          console.error(`Error saving column ${i}:`, error);
+          savedData[i] = [];
+        }
+      } else {
+        savedData[i] = this.data.cols[i]?.blocks || [];
+      }
+    }
 
-    return wrapper;
+    // Update data structure
+    if (newCount > this.data.numberOfColumns) {
+      // Add new columns
+      const columnsToAdd = newCount - this.data.numberOfColumns;
+      for (let i = 0; i < columnsToAdd; i++) {
+        this.data.cols.push({ blocks: [] });
+      }
+    } else if (newCount < this.data.numberOfColumns) {
+      // Remove columns (keep data for undo)
+      this.data.cols = this.data.cols.slice(0, newCount);
+    }
+
+    this.data.numberOfColumns = newCount;
+
+    // Re-render columns
+    this._renderColumns();
+  }
+
+  async save(): Promise<ColumnData> {
+    // Save all editor data before returning
+    for (let i = 0; i < this.editors.length; i++) {
+      const editor = this.editors[i];
+      if (editor && typeof editor.save === "function") {
+        try {
+          const savedData = await editor.save();
+          this.data.cols[i] = {
+            blocks: savedData.blocks,
+          };
+        } catch (error) {
+          console.error(`Error saving column ${i}:`, error);
+        }
+      }
+    }
+
+    return {
+      cols: this.data.cols,
+      numberOfColumns: this.data.numberOfColumns,
+    };
+  }
+
+  validate(savedData: ColumnData): boolean {
+    return (
+      savedData.cols &&
+      Array.isArray(savedData.cols) &&
+      savedData.cols.length > 0
+    );
   }
 
   renderSettings(): HTMLElement {
     const wrapper = document.createElement("div");
-    wrapper.style.cssText = `
-      padding: 10px;
-      background: #f5f5f5;
-      border-radius: 6px;
-    `;
+    wrapper.style.cssText = "padding: 10px;";
 
-    wrapper.innerHTML = `
-      <div style="display: grid; gap: 12px;">
-        <div>
-          <label style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 12px;">COLUMNS</label>
-          <select class="layout-columns-select" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
-            <option value="2" ${this.data.columns === 2 ? "selected" : ""}>2 Columns</option>
-            <option value="3" ${this.data.columns === 3 ? "selected" : ""}>3 Columns</option>
-            <option value="4" ${this.data.columns === 4 ? "selected" : ""}>4 Columns</option>
-          </select>
-        </div>
+    // Title
+    const title = document.createElement("div");
+    title.textContent = "Column Layout";
+    title.style.cssText =
+      "font-weight: 600; font-size: 13px; color: #1f2937; margin-bottom: 12px;";
+    wrapper.appendChild(title);
 
-        <div>
-          <label style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 12px;">LAYOUT STYLE</label>
-          <select class="layout-style-select" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
-            <option value="equal" ${this.data.layout === "equal" ? "selected" : ""}>Equal Width</option>
-            <option value="aside" ${this.data.layout === "aside" ? "selected" : ""}>With Aside</option>
-            <option value="featured" ${this.data.layout === "featured" ? "selected" : ""}>Featured Left</option>
-          </select>
-        </div>
+    // Buttons wrapper
+    const buttonsWrapper = document.createElement("div");
+    buttonsWrapper.style.cssText = "display: flex; gap: 6px; flex-wrap: wrap;";
 
-        <div>
-          <label style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 12px;">GAP BETWEEN COLUMNS</label>
-          <select class="layout-gap-select" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
-            <option value="10px" ${this.data.gap === "10px" ? "selected" : ""}>Small (10px)</option>
-            <option value="20px" ${this.data.gap === "20px" ? "selected" : ""}>Medium (20px)</option>
-            <option value="30px" ${this.data.gap === "30px" ? "selected" : ""}>Large (30px)</option>
-          </select>
-        </div>
+    for (let i = 1; i <= this.config.maxColumns; i++) {
+      const button = document.createElement("button");
+      button.textContent = `${i}`;
+      button.type = "button";
+      button.style.cssText = `
+        width: 36px;
+        height: 36px;
+        border: 1px solid ${i === this.data.numberOfColumns ? "#3b82f6" : "#e5e7eb"};
+        border-radius: 6px;
+        background: ${i === this.data.numberOfColumns ? "#3b82f6" : "white"};
+        color: ${i === this.data.numberOfColumns ? "white" : "#374151"};
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
 
-        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
-          <button type="button" class="clear-all-content" style="width: 100%; padding: 8px; background: #ff4757; color: white; border: none; border-radius: 4px; cursor: pointer;">
-            Clear All Content
-          </button>
-        </div>
-      </div>
-    `;
+      button.addEventListener("mouseenter", () => {
+        if (i !== this.data.numberOfColumns) {
+          button.style.background = "#f3f4f6";
+          button.style.borderColor = "#d1d5db";
+        }
+      });
 
-    // Event listeners for settings
-    const columnsSelect = wrapper.querySelector(
-      ".layout-columns-select"
-    ) as HTMLSelectElement;
-    const styleSelect = wrapper.querySelector(
-      ".layout-style-select"
-    ) as HTMLSelectElement;
-    const gapSelect = wrapper.querySelector(
-      ".layout-gap-select"
-    ) as HTMLSelectElement;
-    const clearButton = wrapper.querySelector(
-      ".clear-all-content"
-    ) as HTMLButtonElement;
+      button.addEventListener("mouseleave", () => {
+        if (i !== this.data.numberOfColumns) {
+          button.style.background = "white";
+          button.style.borderColor = "#e5e7eb";
+        }
+      });
 
-    columnsSelect.addEventListener("change", () => {
-      this.updateColumns(parseInt(columnsSelect.value));
-    });
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-    styleSelect.addEventListener("change", () => {
-      this.updateLayout(styleSelect.value as any);
-    });
+        this._changeColumnCount(i);
 
-    gapSelect.addEventListener("change", () => {
-      this.updateGap(gapSelect.value);
-    });
+        // Update button styles
+        buttonsWrapper.querySelectorAll("button").forEach((btn) => {
+          const btnElement = btn as HTMLElement;
+          const btnNumber = parseInt(btnElement.textContent || "0");
+          if (btnNumber === i) {
+            btnElement.style.background = "#3b82f6";
+            btnElement.style.color = "white";
+            btnElement.style.borderColor = "#3b82f6";
+          } else {
+            btnElement.style.background = "white";
+            btnElement.style.color = "#374151";
+            btnElement.style.borderColor = "#e5e7eb";
+          }
+        });
+      });
 
-    clearButton.addEventListener("click", () => {
-      this.clearAllContent();
-    });
+      buttonsWrapper.appendChild(button);
+    }
+
+    wrapper.appendChild(buttonsWrapper);
+
+    // Info text
+    const info = document.createElement("div");
+    info.textContent = "Select number of columns";
+    info.style.cssText = "font-size: 11px; color: #6b7280; margin-top: 8px;";
+    wrapper.appendChild(info);
 
     return wrapper;
   }
 
-  private updateColumns(newColumnCount: number): void {
-    this.data.columns = newColumnCount;
-
-    // Update columns data
-    this.data.columnsData = Array.from(
-      { length: newColumnCount },
-      (_, index) => {
-        const existingColumn = this.data.columnsData[index];
-        return {
-          id: existingColumn?.id || `column-${index + 1}`,
-          content: existingColumn?.content || [],
-          width: this.getColumnWidth(this.data.layout, index, newColumnCount),
-        };
+  destroy(): void {
+    // Safely destroy all editors
+    for (let i = 0; i < this.editors.length; i++) {
+      const editor = this.editors[i];
+      if (editor && editor.destroy) {
+        try {
+          const destroyPromise = editor.destroy();
+          // Only add catch if destroy returns a promise
+          if (destroyPromise && typeof destroyPromise.catch === "function") {
+            destroyPromise.catch((err: any) => {
+              console.error(`Error destroying editor ${i}:`, err);
+            });
+          }
+        } catch (err) {
+          console.error(`Error in destroy for editor ${i}:`, err);
+        }
       }
-    );
-
-    this.updatePreview();
-  }
-
-  private updateLayout(newLayout: "equal" | "aside" | "featured"): void {
-    this.data.layout = newLayout;
-
-    // Update column widths
-    this.data.columnsData.forEach((column, index) => {
-      column.width = this.getColumnWidth(newLayout, index, this.data.columns);
-    });
-
-    this.updatePreview();
-  }
-
-  private updateGap(newGap: string): void {
-    this.data.gap = newGap;
-    this.updatePreview();
-  }
-
-  private clearAllContent(): void {
-    this.data.columnsData.forEach((column) => {
-      column.content = [];
-    });
-    this.updatePreview();
-  }
-
-  private editColumnContent(columnIndex: number): void {
-    // This would typically open a nested EditorJS instance or modal
-    // For now, we'll simulate with a prompt
-    const content = prompt("Enter content for this column (simulated):");
-    if (content) {
-      this.data.columnsData[columnIndex].content = [
-        {
-          type: "paragraph",
-          data: { text: content },
-        },
-      ];
-      this.updatePreview();
     }
-  }
-
-  private updatePreview(): void {
-    if (this.nodes.wrapper) {
-      const newPreview = this.render();
-      this.nodes.wrapper.parentNode?.replaceChild(
-        newPreview,
-        this.nodes.wrapper
-      );
-      this.nodes.wrapper = newPreview;
-    }
-  }
-
-  save(): LayoutData {
-    return this.data;
+    this.editors = [];
+    this.columnWrappers = [];
+    this.wrapper = null;
   }
 }
+
+export default CustomColumnsTool;
