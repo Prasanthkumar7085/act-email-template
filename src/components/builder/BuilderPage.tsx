@@ -60,6 +60,7 @@ export default function BuilderPage() {
         padding: { top: 40, right: 40, bottom: 40, left: 40 }
         , height: 800
     }]);
+    const [reInitializerEditor, setReInitializerEditor] = useState(false);
 
     const [professionalOptions, setProfessionalOptions] = useState<ProfessionalOptions>({
         fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
@@ -74,9 +75,9 @@ export default function BuilderPage() {
 
     const loadTemplate = (data: any) => {
         setEditorData(data);
+        setReInitializerEditor(!reInitializerEditor);
     };
 
-    // On mount, check if a template was selected from the Templates screen
     useEffect(() => {
         try {
             const raw = localStorage.getItem('selectedTemplate')
@@ -94,6 +95,7 @@ export default function BuilderPage() {
 
     const clearCanvas = () => {
         setEditorData({ time: Date.now(), blocks: [], version: '2.30.8' });
+        setReInitializerEditor(!reInitializerEditor);
 
     };
 
@@ -145,12 +147,9 @@ export default function BuilderPage() {
 
     const handleChangeEditorjsData = useCallback(
         (content: any, pageIndex: number) => {
-            setEditorData(prev => ({
-                ...prev,
-                blocks: content.blocks
-            }));
+            setEditorData(content);
         },
-        []
+        [editorData]
     );
 
     return (
@@ -174,6 +173,7 @@ export default function BuilderPage() {
                 updateProfessionalOptions={updateProfessionalOptions}
                 activeView={activeView}
                 loadTemplate={loadTemplate}
+                reInitializerEditor={reInitializerEditor}
             />
 
             {previewHtml && (

@@ -31,6 +31,7 @@
     "@tanstack/router-plugin": "^1.132.0",
     "editorjs-html": "^4.0.5",
     "editorjs-indent-tune": "^1.4.0",
+    "editorjs-layout": "^1.2.5",
     "editorjs-style": "^3.0.3",
     "editorjs-subscript": "^0.0.5",
     "editorjs-superscript": "^1.0.0",

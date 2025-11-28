@@ -13,9 +13,10 @@ interface Props {
     updateProfessionalOptions: (partial: any) => void
     activeView: 'desktop' | 'mobile'
     loadTemplate: (d: any) => void
+    reInitializerEditor: boolean
 }
 
-export default function BuilderWorkspace({ editorData, onEditorChange, editorRef, pageLayouts, updatePageLayout, professionalOptions, updateProfessionalOptions, activeView, loadTemplate }: Props) {
+export default function BuilderWorkspace({ editorData, onEditorChange, editorRef, pageLayouts, updatePageLayout, professionalOptions, updateProfessionalOptions, activeView, loadTemplate, reInitializerEditor }: Props) {
     const [rightTab, setRightTab] = useState<'settings' | 'templates'>('settings')
 
     const handleEditorHeightChange = (_pageIndex: number, height: number) => {
@@ -43,26 +44,7 @@ export default function BuilderWorkspace({ editorData, onEditorChange, editorRef
                             <h2 className="text-lg font-semibold text-gray-900">Email Builder</h2>
                             <p className="text-sm text-gray-500">Design your email template</p>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                                <button
-                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeView === 'desktop'
-                                        ? 'bg-white text-gray-900 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                        }`}
-                                >
-                                    Desktop
-                                </button>
-                                <button
-                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeView === 'mobile'
-                                        ? 'bg-white text-gray-900 shadow-sm'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                        }`}
-                                >
-                                    Mobile
-                                </button>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 
@@ -94,6 +76,7 @@ export default function BuilderWorkspace({ editorData, onEditorChange, editorRef
                                     editorRef={editorRef}
                                     pageLayouts={pageLayouts}
                                     onHeightChange={handleEditorHeightChange}
+                                    reInitializerEditor={reInitializerEditor}
                                 />
                             </div>
                         </div>

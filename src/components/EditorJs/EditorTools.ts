@@ -15,7 +15,11 @@ import { CustomHeaderTool } from "./CustomHeaderTool";
 import CustomImageTool from "./CustomImageTool";
 import CustomTableTool from "./CustomTableTool";
 import { HorizontalLineTool } from "./CustomHorizontalLineTool";
+import { CustomLayoutTool } from "./CustomLayoutTool";
+import { CustomButtonTool } from "./CustomButtonTool";
 // import IndentTune from "./CustomIndentTool";
+import Layout from "editorjs-layout";
+import { SocialMediaTool } from "./CustomSocialMedialTool";
 
 export function configureEditorTools({
   responseId,
@@ -271,5 +275,18 @@ export function configureEditorTools({
       class: InlineCode,
       shortcut: "CMD+ALT+K",
     },
+    // layout: {
+    //   class: CustomLayoutTool,
+    //   shortcut: "CMD+ALT+G",
+    // },
+
+    // button: {
+    //   class: CustomButtonTool,
+    //   shortcut: "CMD+ALT+B",
+    // },
+    // social: {
+    //   class: SocialMediaTool,
+    //   shortcut: "CMD+ALT+S",
+    // },
   };
 }

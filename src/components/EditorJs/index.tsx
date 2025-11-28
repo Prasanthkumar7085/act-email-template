@@ -16,12 +16,13 @@ interface EditorJSComponentProps {
     onHeightChange?: (pageIndex: number, height: number) => void
     editorRef: React.MutableRefObject<Map<number, any> | any>
     pageLayouts?: any[]
+    reInitializerEditor?: boolean
 }
 
-function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightChange, editorRef, pageLayouts }: EditorJSComponentProps) {
+function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightChange, editorRef, pageLayouts, reInitializerEditor }: EditorJSComponentProps) {
 
     const BASE_PAGE_HEIGHT = 800
-    const MARGIN = 80;
+    const MARGIN = 40;
 
     const params = useParams({ strict: false })
 
@@ -61,7 +62,7 @@ function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightC
 
         totalHeight += 50
         return Math.max(BASE_PAGE_HEIGHT, totalHeight)
-    }, [pageIndex])
+    }, [])
 
     const updatePageHeight = useCallback(async () => {
         if (!mountedRef.current) return
@@ -135,7 +136,7 @@ function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightC
         if (editorElement) {
             heightObserverRef.current.observe(editorElement)
         }
-    }, [pageIndex])
+    }, [])
 
 
     const replaceCustomSpanWithValue = useCallback(() => {
@@ -187,7 +188,7 @@ function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightC
 
         setIsEditorReady(false)
         initializingRef.current = false
-    }, [pageIndex, editorRef])
+    }, [])
 
     const initializeEditor = useCallback(async () => {
         if (initializingRef.current || !mountedRef.current) return
@@ -312,8 +313,8 @@ function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightC
         } finally {
             initializingRef.current = false
         }
-    }, [
-        pageIndex,
+    }, [reInitializerEditor
+
     ])
 
     useEffect(() => {
@@ -348,7 +349,7 @@ function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightC
 
             renderData()
         }
-    }, [isEditorReady, applyAlignmentFromTunes, updatePageHeight, initializeEditor])
+    }, [isEditorReady, applyAlignmentFromTunes, reInitializerEditor])
 
     useEffect(() => {
         mountedRef.current = true
@@ -358,7 +359,7 @@ function EditorJSComponent({ data, onChange, pageIndex, onImageUpload, onHeightC
             mountedRef.current = false
             cleanupEditor()
         }
-    }, [pageIndex,])
+    }, [])
 
     return (
         <div
