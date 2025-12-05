@@ -19,11 +19,8 @@ import ButtonTool from "./CustomButtonTool";
 import Layout from "editorjs-layout";
 import CustomColumnsTool from "./CustomLayoutTool";
 import SocialMediaTool from "./CustomSocialMedialTool";
+import Quote from "@editorjs/quote";
 
-// Import the custom columns tool
-
-// Define tools that can be used inside columns
-// Note: Keep this simpler than main tools to avoid nested complexity
 function getColumnTools(responseId: any, isEditable: any) {
   return {
     header: {
@@ -92,11 +89,6 @@ function getColumnTools(responseId: any, isEditable: any) {
         stretched: true,
         enableResizing: true,
         isEditable,
-        uploader: {
-          uploadByFile(file: File) {
-            return onImageUpload?.(file);
-          },
-        },
       },
     },
     delimiter: {
@@ -112,6 +104,10 @@ function getColumnTools(responseId: any, isEditable: any) {
     inlineCode: {
       class: InlineCode,
     },
+    button: {
+      class: ButtonTool,
+      shortcut: "CMD+ALT+B",
+    },
   };
 }
 
@@ -120,9 +116,9 @@ export function configureEditorTools({
   setOpenTableProperties,
   openTableProperties,
   isEditable,
-  EditorJS, // Add EditorJS library as parameter
-  onImageUpload, // Add missing parameters
-  pageIndex, // Add missing parameters
+  EditorJS,
+  onImageUpload,
+  pageIndex,
 }: any) {
   return {
     header: {
@@ -310,6 +306,15 @@ export function configureEditorTools({
         enableLayoutSaving: true,
       },
       shortcut: "CMD+ALT+C",
+    },
+    quote: {
+      class: Quote,
+      inlineToolbar: true,
+      shortcut: "CMD+SHIFT+O",
+      config: {
+        quotePlaceholder: "Enter a quote",
+        captionPlaceholder: "Quote's author",
+      },
     },
 
     // social: {

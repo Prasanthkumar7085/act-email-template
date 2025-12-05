@@ -7,9 +7,11 @@ interface Props {
     exportHtml: () => void
     exportJson: () => void
     clearCanvas: () => void
+    builderMode: 'editorjs' | 'dragdrop'
+    setBuilderMode: (mode: 'editorjs' | 'dragdrop') => void
 }
 
-export default function BuilderHeader({ activeView, setActiveView, openPreview, exportHtml, exportJson, clearCanvas }: Props) {
+export default function BuilderHeader({ activeView, setActiveView, openPreview, exportHtml, exportJson, clearCanvas, builderMode, setBuilderMode }: Props) {
     return (
         <div className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
@@ -24,6 +26,26 @@ export default function BuilderHeader({ activeView, setActiveView, openPreview, 
                 </div>
 
                 <div className="flex items-center space-x-3">
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                        <button
+                            onClick={() => setBuilderMode('editorjs')}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${builderMode === 'editorjs'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
+                                }`}
+                        >
+                            ✏️ EditorJS
+                        </button>
+                        <button
+                            onClick={() => setBuilderMode('dragdrop')}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${builderMode === 'dragdrop'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
+                                }`}
+                        >
+                            🎨 Drag & Drop
+                        </button>
+                    </div>
                     <div className="flex bg-gray-100 rounded-lg p-1">
                         <button
                             onClick={() => setActiveView('desktop')}

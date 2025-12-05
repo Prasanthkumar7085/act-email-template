@@ -1,8 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { buildEmailFromEditor } from '../../lib/renderTemplate';
 import BuilderHeader from './BuilderHeader';
 import BuilderWorkspace from './BuilderWorkspace';
-import { useEffect } from 'react';
+import { EmailElement } from './DragDropBuilder';
+import { buildEmailFromDragDrop } from '../../lib/renderDragDropTemplate';
 
 interface EditorData {
     time: number;
@@ -51,6 +52,8 @@ export default function BuilderPage() {
     const editorRef = useRef<Map<number, any>>(new Map());
     const [previewHtml, setPreviewHtml] = useState<string | null>(null);
     const [activeView, setActiveView] = useState<'desktop' | 'mobile'>('desktop');
+    const [builderMode, setBuilderMode] = useState<'editorjs' | 'dragdrop'>('editorjs');
+    const [dragDropElements, setDragDropElements] = useState<EmailElement[]>([]);
     const [pageLayouts, setPageLayouts] = useState<PageLayout[]>([{
         background: '#ffffff',
         margins: { top: 40, right: 0, bottom: 0, left: 0 },
@@ -94,14 +97,22 @@ export default function BuilderPage() {
     }, [])
 
     const clearCanvas = () => {
-        setEditorData({ time: Date.now(), blocks: [], version: '2.30.8' });
-        setReInitializerEditor(!reInitializerEditor);
-
+        if (builderMode === 'editorjs') {
+            setEditorData({ time: Date.now(), blocks: [], version: '2.30.8' });
+            setReInitializerEditor(!reInitializerEditor);
+        } else {
+            setDragDropElements([]);
+        }
     };
 
     const exportHtml = async (view?: 'desktop' | 'mobile') => {
         const usedView = view || activeView || 'desktop'
-        const html = await buildEmailFromEditor(editorData, usedView)
+        let html: string;
+        if (builderMode === 'editorjs') {
+            html = await buildEmailFromEditor(editorData, usedView);
+        } else {
+            html = buildEmailFromDragDrop(dragDropElements, pageLayouts[0], usedView);
+        }
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -113,7 +124,9 @@ export default function BuilderPage() {
 
     const exportJson = () => {
         const data = {
-            editorData,
+            builderMode,
+            editorData: builderMode === 'editorjs' ? editorData : null,
+            dragDropElements: builderMode === 'dragdrop' ? dragDropElements : null,
             pageLayouts,
             professionalOptions,
             exportDate: new Date().toISOString()
@@ -129,9 +142,22 @@ export default function BuilderPage() {
     };
 
     const openPreview = async () => {
-        const html = await buildEmailFromEditor(editorData, activeView)
-        setPreviewHtml(html)
+        let html: string;
+        if (builderMode === 'editorjs') {
+            html = await buildEmailFromEditor(editorData, activeView);
+        } else {
+            html = buildEmailFromDragDrop(dragDropElements, pageLayouts[0], activeView);
+        }
+        setPreviewHtml(html);
     };
+    
+    // Update preview when view changes
+    useEffect(() => {
+        if (previewHtml) {
+            openPreview();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeView]);
 
     const updatePageLayout = (partial: Partial<PageLayout>) => {
         setPageLayouts((prev) => {
@@ -161,9 +187,12 @@ export default function BuilderPage() {
                 exportHtml={exportHtml}
                 exportJson={exportJson}
                 clearCanvas={clearCanvas}
+                builderMode={builderMode}
+                setBuilderMode={setBuilderMode}
             />
 
             <BuilderWorkspace
+                builderMode={builderMode}
                 editorData={editorData}
                 onEditorChange={handleChangeEditorjsData}
                 editorRef={editorRef}
@@ -174,17 +203,44 @@ export default function BuilderPage() {
                 activeView={activeView}
                 loadTemplate={loadTemplate}
                 reInitializerEditor={reInitializerEditor}
+                dragDropElements={dragDropElements}
+                onDragDropElementsChange={setDragDropElements}
             />
 
             {previewHtml && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+                    <div className="bg-white rounded-2xl max-w-7xl w-full max-h-[90vh] flex flex-col">
                         <div className="flex items-center justify-between p-6 border-b border-gray-200">
                             <h3 className="text-lg font-semibold text-gray-900">Email Preview</h3>
                             <div className="flex items-center space-x-3">
+                                <div className="flex bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setActiveView('desktop')}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                                            activeView === 'desktop'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        🖥️ Desktop
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveView('mobile')}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                                            activeView === 'mobile'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        📱 Mobile
+                                    </button>
+                                </div>
                                 <button
-                                    onClick={() => {
-                                        const blob = new Blob([previewHtml || ''], { type: 'text/html' });
+                                    onClick={async () => {
+                                        const html = builderMode === 'editorjs' 
+                                            ? await buildEmailFromEditor(editorData, activeView)
+                                            : buildEmailFromDragDrop(dragDropElements, pageLayouts[0], activeView);
+                                        const blob = new Blob([html], { type: 'text/html' });
                                         const url = URL.createObjectURL(blob);
                                         window.open(url, '_blank');
                                     }}
@@ -200,10 +256,19 @@ export default function BuilderPage() {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 overflow-auto p-8 bg-gray-50">
+                        <div className="flex-1 overflow-auto p-8 bg-gray-50 flex items-center justify-center">
                             <div
-                                className="mx-auto bg-white shadow-lg rounded-lg overflow-hidden"
-                                style={{ maxWidth: '600px' }}
+                                className="bg-white shadow-lg rounded-lg overflow-hidden mx-auto"
+                                style={{
+                                    width: activeView === 'mobile' 
+                                        ? `${pageLayouts[0]?.width || 375}px`
+                                        : `${pageLayouts[0]?.width || 900}px`,
+                                    maxWidth: activeView === 'mobile'
+                                        ? `${pageLayouts[0]?.maxWidth || 375}px`
+                                        : `${pageLayouts[0]?.maxWidth || 900}px`,
+                                    transform: activeView === 'mobile' ? 'scale(0.9)' : 'scale(1)',
+                                    transition: 'transform 0.3s ease',
+                                }}
                                 dangerouslySetInnerHTML={{ __html: previewHtml || '' }}
                             />
                         </div>

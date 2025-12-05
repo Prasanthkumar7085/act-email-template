@@ -361,11 +361,17 @@ const convertCode = (block: EditorJSBlock): string => {
  */
 const convertDelimiter = (block: EditorJSBlock): string => {
   const styleObj = getStyleObject(block);
-  styleObj["text-align"] = styleObj["text-align"] || "center";
+
+  // Apply alignment from block tunes
+  if (block.tunes?.alignment?.alignment) {
+    styleObj["text-align"] = block.tunes.alignment.alignment;
+  }
+
   styleObj["margin"] = "32px 0";
   styleObj["font-size"] = "30px";
   styleObj["line-height"] = "1";
   styleObj["letter-spacing"] = "0.2em";
+  styleObj["color"] = "#374151";
 
   const styleStr = styleObjectToString(styleObj);
   return `<div${styleStr}>* * *</div>`;
@@ -435,47 +441,62 @@ const convertHorizontalLine = (block: EditorJSBlock): string => {
 };
 
 /**
- * Convert button block to HTML
+ * Convert button block to HTML with alignment support
  */
 const convertButton = (block: EditorJSBlock): string => {
   const {
     text = "Button",
     url = "#",
-    variant = "primary",
-    alignment = "left",
+    style = "filled",
+    color = "#ffffff",
+    backgroundColor = "#3b82f6",
+    align = "left",
+    target = "_blank",
+    size = "medium",
   } = block.data;
 
-  // Get block-level styles (indent, but not alignment - we handle that separately for buttons)
-  const styleObj = getStyleObject(block);
-  const indentStyle = styleObj["margin-left"]
-    ? `margin-left: ${styleObj["margin-left"]};`
-    : "";
+  // Get block-level alignment and indent from tunes
+  const blockStyleObj = getStyleObject(block);
 
-  // Button color schemes
-  const variantStyles: Record<string, string> = {
-    primary: "background-color: #3b82f6; color: white;",
-    secondary: "background-color: #6b7280; color: white;",
-    outline:
-      "background-color: transparent; color: #3b82f6; border: 2px solid #3b82f6;",
+  // Use alignment from tunes if available, otherwise from button data
+  const finalAlignment = block.tunes?.alignment?.alignment || align;
+
+  // Button size mapping
+  const sizeStyles: Record<string, string> = {
+    small: "padding: 8px 16px; font-size: 12px;",
+    medium: "padding: 12px 24px; font-size: 14px;",
+    large: "padding: 16px 32px; font-size: 16px;",
   };
 
-  const buttonStyle = variantStyles[variant] || variantStyles.primary;
+  // Button style mapping
+  const variantStyles: Record<string, string> = {
+    filled: `background-color: ${backgroundColor}; color: ${color}; border: none;`,
+    outline: `background-color: transparent; color: ${backgroundColor}; border: 2px solid ${backgroundColor};`,
+    text: `background-color: transparent; color: ${backgroundColor}; border: none;`,
+  };
 
-  const containerStyle = `text-align: ${alignment}; margin: 20px 0; ${indentStyle}`;
-
-  const fullButtonStyle = [
-    buttonStyle,
-    "padding: 12px 24px",
+  const buttonStyle = [
+    variantStyles[style] || variantStyles.filled,
+    sizeStyles[size] || sizeStyles.medium,
     "border-radius: 6px",
     "text-decoration: none",
     "display: inline-block",
     "font-weight: 500",
-    "font-size: 14px",
-    "transition: opacity 0.2s",
+    "transition: all 0.2s",
     "cursor: pointer",
+    "text-align: center",
   ].join("; ");
 
-  return `<div style="${containerStyle}"><a href="${url}" style="${fullButtonStyle}">${sanitizeHTML(text)}</a></div>`;
+  // Container with proper alignment and indent
+  const containerStyles = {
+    "text-align": finalAlignment,
+    margin: "20px 0",
+    ...blockStyleObj,
+  };
+
+  const containerStyleStr = styleObjectToString(containerStyles);
+
+  return `<div${containerStyleStr}><a href="${url}" target="${target}" style="${buttonStyle}">${sanitizeHTML(text)}</a></div>`;
 };
 
 /**
@@ -537,30 +558,109 @@ const convertSocial = (block: EditorJSBlock): string => {
 };
 
 /**
- * Convert columns block to HTML (clean, no visible borders)
+ * Convert columns block to HTML with all settings
+ */
+/**
+ * Convert columns block to HTML with all settings
  */
 const convertColumns = (block: EditorJSBlock): string => {
-  const { cols = [], numberOfColumns = 2 } = block.data;
+  const { cols = [], numberOfColumns = 2, layout = {} } = block.data;
 
   if (!cols || cols.length === 0) {
     return "";
   }
 
-  const styleObj = getStyleObject(block);
-  styleObj["display"] = "flex";
-  styleObj["gap"] = "20px";
-  styleObj["margin"] = "20px 0";
+  // Get block-level alignment and indent
+  const blockStyleObj = getStyleObject(block);
 
-  const containerStyle = styleObjectToString(styleObj);
+  // Merge with layout settings - ensure background color is properly set
+  const layoutStyles: Record<string, string> = {
+    display: "flex",
+    gap: `${layout.gap || 20}px`,
+    margin: "20px 0",
+    ...blockStyleObj,
+  };
+
+  // Apply background color if specified
+  if (layout.backgroundColor && layout.backgroundColor !== "transparent") {
+    layoutStyles.background = layout.backgroundColor;
+  }
+
+  // Apply other layout styles
+  if (layout.borderRadius && layout.borderRadius > 0) {
+    layoutStyles.borderRadius = `${layout.borderRadius}px`;
+  }
+
+  if (layout.padding && layout.padding > 0) {
+    layoutStyles.padding = `${layout.padding}px`;
+  }
+
+  // Add border if borderColor is specified
+  if (layout.borderColor && layout.borderColor !== "transparent") {
+    layoutStyles.border = `1px solid ${layout.borderColor}`;
+  }
+
+  // Add custom CSS if provided - this should override other styles
+  if (layout.customCSS) {
+    // Parse custom CSS and merge with existing styles
+    const customStyles = layout.customCSS
+      .split(";")
+      .reduce((acc: Record<string, string>, style) => {
+        const [key, value] = style.split(":").map((s) => s.trim());
+        if (key && value) {
+          // Convert kebab-case to camelCase for consistency
+          const camelCaseKey = key.replace(/-([a-z])/g, (g) =>
+            g[1].toUpperCase()
+          );
+          acc[camelCaseKey] = value;
+        }
+        return acc;
+      }, {});
+
+    Object.assign(layoutStyles, customStyles);
+  }
+
+  const containerStyle = styleObjectToString(layoutStyles);
 
   let html = `<div${containerStyle}>`;
 
   // Process each column
   for (let i = 0; i < numberOfColumns; i++) {
-    const columnBlocks = cols[i]?.blocks || [];
+    const columnData = cols[i];
+    const columnBlocks = columnData?.blocks || [];
 
-    // Clean column styling - no borders in preview
-    html += `<div style="flex: 1;">`;
+    // Column styles
+    const columnStyles: Record<string, string> = {
+      flex: "1",
+      minHeight: "50px",
+    };
+
+    // Apply column background color if specified
+    if (
+      layout.columnBackgroundColor &&
+      layout.columnBackgroundColor !== "transparent"
+    ) {
+      columnStyles.background = layout.columnBackgroundColor;
+    }
+
+    // Apply column border radius
+    if (layout.borderRadius && layout.borderRadius > 0) {
+      columnStyles.borderRadius = `${layout.borderRadius}px`;
+    }
+
+    // Apply column padding
+    if (layout.padding && layout.padding > 0) {
+      columnStyles.padding = `${layout.padding}px`;
+    }
+
+    // Add column border if specified
+    if (layout.borderColor && layout.borderColor !== "transparent") {
+      columnStyles.border = `1px solid ${layout.borderColor}`;
+    }
+
+    const columnStyleStr = styleObjectToString(columnStyles);
+
+    html += `<div${columnStyleStr}>`;
 
     // Convert blocks inside column
     columnBlocks.forEach((colBlock: EditorJSBlock) => {
@@ -798,7 +898,23 @@ export const convertEditorJSToHTMLWithStyles = (
 @media (max-width: 768px) {
   .${wrapperClass} [style*="display: flex"] {
     flex-direction: column !important;
+    gap: 10px !important;
   }
+  
+  .${wrapperClass} [style*="display: flex"] > div {
+    flex: 1 1 100% !important;
+  }
+}
+
+/* Delimiter styles */
+.${wrapperClass} div[style*="font-size: 30px"] {
+  text-align: center;
+  color: #374151;
+}
+
+/* Button container alignment */
+.${wrapperClass} div[style*="text-align"] {
+  margin: 20px 0;
 }
   `.trim();
 

@@ -2,8 +2,10 @@ import React, { useState } from 'react'
 import Palette from './Palette'
 import EditorJSComponent from '../EditorJs'
 import PropertiesPanel from './PropertiesPanel'
+import DragDropBuilder, { EmailElement } from './DragDropBuilder'
 
 interface Props {
+    builderMode: 'editorjs' | 'dragdrop'
     editorData: any
     onEditorChange: any
     editorRef: React.MutableRefObject<Map<number, any> | any>
@@ -14,9 +16,25 @@ interface Props {
     activeView: 'desktop' | 'mobile'
     loadTemplate: (d: any) => void
     reInitializerEditor: boolean
+    dragDropElements: EmailElement[]
+    onDragDropElementsChange: (elements: EmailElement[]) => void
 }
 
-export default function BuilderWorkspace({ editorData, onEditorChange, editorRef, pageLayouts, updatePageLayout, professionalOptions, updateProfessionalOptions, activeView, loadTemplate, reInitializerEditor }: Props) {
+export default function BuilderWorkspace({ 
+    builderMode,
+    editorData, 
+    onEditorChange, 
+    editorRef, 
+    pageLayouts, 
+    updatePageLayout, 
+    professionalOptions, 
+    updateProfessionalOptions, 
+    activeView, 
+    loadTemplate, 
+    reInitializerEditor,
+    dragDropElements,
+    onDragDropElementsChange
+}: Props) {
     const [rightTab, setRightTab] = useState<'settings' | 'templates'>('settings')
 
     const handleEditorHeightChange = (_pageIndex: number, height: number) => {
@@ -24,6 +42,17 @@ export default function BuilderWorkspace({ editorData, onEditorChange, editorRef
     }
 
     const page = pageLayouts?.[0] || {}
+
+    if (builderMode === 'dragdrop') {
+        return (
+            <DragDropBuilder
+                elements={dragDropElements}
+                onElementsChange={onDragDropElementsChange}
+                pageLayouts={pageLayouts}
+                activeView={activeView}
+            />
+        );
+    }
 
     return (
         <div className="flex-1 flex overflow-hidden">

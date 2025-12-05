@@ -5,6 +5,15 @@ interface ColumnData {
     blocks: any[];
   }>;
   numberOfColumns: number;
+  layout: {
+    gap: number;
+    backgroundColor: string;
+    columnBackgroundColor: string;
+    borderColor: string;
+    borderRadius: number;
+    padding: number;
+    customCSS: string;
+  };
 }
 
 interface ColumnConfig {
@@ -12,6 +21,12 @@ interface ColumnConfig {
   tools: any;
   defaultColumns?: number;
   maxColumns?: number;
+  defaultGap?: number;
+  defaultBackgroundColor?: string;
+  defaultColumnBackgroundColor?: string;
+  defaultBorderColor?: string;
+  defaultBorderRadius?: number;
+  defaultPadding?: number;
 }
 
 class CustomColumnsTool {
@@ -22,6 +37,7 @@ class CustomColumnsTool {
   private wrapper: HTMLElement | null = null;
   private editors: EditorJS[] = [];
   private columnWrappers: HTMLElement[] = [];
+  private settingsPanel: HTMLElement | null = null;
 
   static get toolbox() {
     return {
@@ -44,11 +60,27 @@ class CustomColumnsTool {
       tools: config?.tools || {},
       defaultColumns: config?.defaultColumns || 2,
       maxColumns: config?.maxColumns || 4,
+      defaultGap: config?.defaultGap || 20,
+      defaultBackgroundColor: config?.defaultBackgroundColor || "transparent",
+      defaultColumnBackgroundColor:
+        config?.defaultColumnBackgroundColor || "#fafafa",
+      defaultBorderColor: config?.defaultBorderColor || "#e8e8eb",
+      defaultBorderRadius: config?.defaultBorderRadius || 8,
+      defaultPadding: config?.defaultPadding || 15,
     };
 
     this.data = {
       cols: data?.cols || this._createEmptyColumns(this.config.defaultColumns),
       numberOfColumns: data?.numberOfColumns || this.config.defaultColumns,
+      layout: data?.layout || {
+        gap: this.config.defaultGap,
+        backgroundColor: this.config.defaultBackgroundColor,
+        columnBackgroundColor: this.config.defaultColumnBackgroundColor,
+        borderColor: this.config.defaultBorderColor,
+        borderRadius: this.config.defaultBorderRadius,
+        padding: this.config.defaultPadding,
+        customCSS: data?.layout?.customCSS || "",
+      },
     };
   }
 
@@ -59,13 +91,7 @@ class CustomColumnsTool {
   render(): HTMLElement {
     this.wrapper = document.createElement("div");
     this.wrapper.classList.add("custom-columns-tool");
-    this.wrapper.style.cssText = `
-      display: flex;
-      gap: 20px;
-      width: 100%;
-      margin: 10px 0;
-      position: relative;
-    `;
+    this._applyStyles();
 
     // Initialize the columns array properly
     if (!this.data.cols || this.data.cols.length < this.data.numberOfColumns) {
@@ -76,6 +102,22 @@ class CustomColumnsTool {
     this._renderColumns();
 
     return this.wrapper;
+  }
+
+  private _applyStyles(): void {
+    if (!this.wrapper) return;
+
+    this.wrapper.style.cssText = `
+      display: flex;
+      gap: ${this.data.layout.gap}px;
+      width: 100%;
+      margin: 10px 0;
+      position: relative;
+      background: ${this.data.layout.backgroundColor};
+      padding: 10px;
+      border-radius: ${this.data.layout.borderRadius}px;
+      ${this.data.layout.customCSS}
+    `;
   }
 
   private _renderColumns(): void {
@@ -95,7 +137,6 @@ class CustomColumnsTool {
       if (editor && editor.destroy) {
         try {
           const destroyPromise = editor.destroy();
-          // Only add catch if destroy returns a promise
           if (destroyPromise && typeof destroyPromise.catch === "function") {
             destroyPromise.catch((err: any) => {
               console.error(`Error destroying editor ${i}:`, err);
@@ -119,11 +160,12 @@ class CustomColumnsTool {
       columnWrapper.classList.add("custom-column");
       columnWrapper.style.cssText = `
         flex: 1;
-        border: 1px solid #e8e8eb;
-        border-radius: 8px;
-        padding: 15px;
-        background: #fafafa;
+        border: 1px solid ${this.data.layout.borderColor};
+        border-radius: ${this.data.layout.borderRadius}px;
+        padding: ${this.data.layout.padding}px;
+        background: ${this.data.layout.columnBackgroundColor};
         min-height: 100px;
+        transition: all 0.3s ease;
       `;
 
       const editorHolder = document.createElement("div");
@@ -145,13 +187,12 @@ class CustomColumnsTool {
           this._initializeColumnEditor(editorHolder.id, i);
         },
         100 * (i + 1)
-      ); // Stagger initialization to avoid conflicts
+      );
     }
   }
 
   private _initializeColumnEditor(holderId: string, columnIndex: number): void {
     try {
-      // Ensure the holder element still exists
       const holderElement = document.getElementById(holderId);
       if (!holderElement) {
         console.warn(`Holder element ${holderId} not found`);
@@ -181,7 +222,6 @@ class CustomColumnsTool {
           }
         },
         onReady: () => {
-          // Editor is ready, store the reference
           this.editors[columnIndex] = editor;
         },
       });
@@ -211,24 +251,37 @@ class CustomColumnsTool {
 
     // Update data structure
     if (newCount > this.data.numberOfColumns) {
-      // Add new columns
       const columnsToAdd = newCount - this.data.numberOfColumns;
       for (let i = 0; i < columnsToAdd; i++) {
         this.data.cols.push({ blocks: [] });
       }
     } else if (newCount < this.data.numberOfColumns) {
-      // Remove columns (keep data for undo)
       this.data.cols = this.data.cols.slice(0, newCount);
     }
 
     this.data.numberOfColumns = newCount;
-
-    // Re-render columns
     this._renderColumns();
   }
 
+  private _updateLayoutStyle(property: string, value: any): void {
+    (this.data.layout as any)[property] = value;
+    this._applyStyles();
+
+    // Update individual columns
+    this.columnWrappers.forEach((column) => {
+      if (property === "borderColor") {
+        column.style.borderColor = value;
+      } else if (property === "columnBackgroundColor") {
+        column.style.background = value;
+      } else if (property === "borderRadius") {
+        column.style.borderRadius = `${value}px`;
+      } else if (property === "padding") {
+        column.style.padding = `${value}px`;
+      }
+    });
+  }
+
   async save(): Promise<ColumnData> {
-    // Save all editor data before returning
     for (let i = 0; i < this.editors.length; i++) {
       const editor = this.editors[i];
       if (editor && typeof editor.save === "function") {
@@ -246,6 +299,7 @@ class CustomColumnsTool {
     return {
       cols: this.data.cols,
       numberOfColumns: this.data.numberOfColumns,
+      layout: this.data.layout,
     };
   }
 
@@ -258,17 +312,27 @@ class CustomColumnsTool {
   }
 
   renderSettings(): HTMLElement {
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText = "padding: 10px;";
+    this.settingsPanel = document.createElement("div");
+    this.settingsPanel.style.cssText = "padding: 10px; max-width: 300px;";
 
-    // Title
+    this._renderColumnCountSettings();
+    this._renderLayoutSettings();
+    this._renderColorSettings();
+    this._renderAdvancedSettings();
+
+    return this.settingsPanel;
+  }
+
+  private _renderColumnCountSettings(): void {
+    const section = document.createElement("div");
+    section.style.cssText = "margin-bottom: 20px;";
+
     const title = document.createElement("div");
     title.textContent = "Column Layout";
     title.style.cssText =
       "font-weight: 600; font-size: 13px; color: #1f2937; margin-bottom: 12px;";
-    wrapper.appendChild(title);
+    section.appendChild(title);
 
-    // Buttons wrapper
     const buttonsWrapper = document.createElement("div");
     buttonsWrapper.style.cssText = "display: flex; gap: 6px; flex-wrap: wrap;";
 
@@ -309,10 +373,8 @@ class CustomColumnsTool {
       button.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-
         this._changeColumnCount(i);
 
-        // Update button styles
         buttonsWrapper.querySelectorAll("button").forEach((btn) => {
           const btnElement = btn as HTMLElement;
           const btnNumber = parseInt(btnElement.textContent || "0");
@@ -331,25 +393,285 @@ class CustomColumnsTool {
       buttonsWrapper.appendChild(button);
     }
 
-    wrapper.appendChild(buttonsWrapper);
+    section.appendChild(buttonsWrapper);
+    this.settingsPanel!.appendChild(section);
+  }
 
-    // Info text
-    const info = document.createElement("div");
-    info.textContent = "Select number of columns";
-    info.style.cssText = "font-size: 11px; color: #6b7280; margin-top: 8px;";
-    wrapper.appendChild(info);
+  private _renderLayoutSettings(): void {
+    const section = document.createElement("div");
+    section.style.cssText = "margin-bottom: 20px;";
 
+    const title = document.createElement("div");
+    title.textContent = "Layout Settings";
+    title.style.cssText =
+      "font-weight: 600; font-size: 13px; color: #1f2937; margin-bottom: 12px;";
+    section.appendChild(title);
+
+    // Gap setting
+    const gapWrapper = this._createSliderSetting(
+      "Gap",
+      this.data.layout.gap,
+      0,
+      50,
+      (value) => {
+        this._updateLayoutStyle("gap", value);
+      }
+    );
+    section.appendChild(gapWrapper);
+
+    // Padding setting
+    const paddingWrapper = this._createSliderSetting(
+      "Padding",
+      this.data.layout.padding,
+      0,
+      30,
+      (value) => {
+        this._updateLayoutStyle("padding", value);
+      }
+    );
+    section.appendChild(paddingWrapper);
+
+    // Border Radius setting
+    const borderRadiusWrapper = this._createSliderSetting(
+      "Border Radius",
+      this.data.layout.borderRadius,
+      0,
+      20,
+      (value) => {
+        this._updateLayoutStyle("borderRadius", value);
+      }
+    );
+    section.appendChild(borderRadiusWrapper);
+
+    this.settingsPanel!.appendChild(section);
+  }
+
+  private _renderColorSettings(): void {
+    const section = document.createElement("div");
+    section.style.cssText = "margin-bottom: 20px;";
+
+    const title = document.createElement("div");
+    title.textContent = "Color Settings";
+    title.style.cssText =
+      "font-weight: 600; font-size: 13px; color: #1f2937; margin-bottom: 12px;";
+    section.appendChild(title);
+
+    // Background Color
+    const bgColorWrapper = this._createColorSetting(
+      "Background Color",
+      this.data.layout.backgroundColor,
+      (value) => {
+        this._updateLayoutStyle("backgroundColor", value);
+      }
+    );
+    section.appendChild(bgColorWrapper);
+
+    // Column Background Color
+    const columnBgColorWrapper = this._createColorSetting(
+      "Column Background",
+      this.data.layout.columnBackgroundColor,
+      (value) => {
+        this._updateLayoutStyle("columnBackgroundColor", value);
+      }
+    );
+    section.appendChild(columnBgColorWrapper);
+
+    // Border Color
+    const borderColorWrapper = this._createColorSetting(
+      "Border Color",
+      this.data.layout.borderColor,
+      (value) => {
+        this._updateLayoutStyle("borderColor", value);
+      }
+    );
+    section.appendChild(borderColorWrapper);
+
+    this.settingsPanel!.appendChild(section);
+  }
+
+  private _renderAdvancedSettings(): void {
+    const section = document.createElement("div");
+    section.style.cssText = "margin-bottom: 10px;";
+
+    const title = document.createElement("div");
+    title.textContent = "Advanced Settings";
+    title.style.cssText =
+      "font-weight: 600; font-size: 13px; color: #1f2937; margin-bottom: 12px;";
+    section.appendChild(title);
+
+    // Custom CSS
+    const cssWrapper = document.createElement("div");
+    cssWrapper.style.cssText = "margin-bottom: 12px;";
+
+    const cssLabel = document.createElement("label");
+    cssLabel.textContent = "Custom CSS";
+    cssLabel.style.cssText =
+      "display: block; font-size: 12px; color: #374151; margin-bottom: 4px;";
+    cssWrapper.appendChild(cssLabel);
+
+    const cssTextarea = document.createElement("textarea");
+    cssTextarea.value = this.data.layout.customCSS;
+    cssTextarea.placeholder = "Enter custom CSS styles...";
+    cssTextarea.style.cssText = `
+      width: 100%;
+      height: 60px;
+      padding: 6px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+      resize: vertical;
+    `;
+
+    cssTextarea.addEventListener("input", (e) => {
+      const value = (e.target as HTMLTextAreaElement).value;
+      this._updateLayoutStyle("customCSS", value);
+    });
+
+    cssWrapper.appendChild(cssTextarea);
+    section.appendChild(cssWrapper);
+
+    // Reset to defaults button
+    const resetButton = document.createElement("button");
+    resetButton.textContent = "Reset to Defaults";
+    resetButton.type = "button";
+    resetButton.style.cssText = `
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      background: white;
+      color: #374151;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s;
+    `;
+
+    resetButton.addEventListener("mouseenter", () => {
+      resetButton.style.background = "#f3f4f6";
+    });
+
+    resetButton.addEventListener("mouseleave", () => {
+      resetButton.style.background = "white";
+    });
+
+    resetButton.addEventListener("click", () => {
+      this.data.layout = {
+        gap: this.config.defaultGap!,
+        backgroundColor: this.config.defaultBackgroundColor!,
+        columnBackgroundColor: this.config.defaultColumnBackgroundColor!,
+        borderColor: this.config.defaultBorderColor!,
+        borderRadius: this.config.defaultBorderRadius!,
+        padding: this.config.defaultPadding!,
+        customCSS: "",
+      };
+      this._applyStyles();
+      this._renderColumns();
+
+      // Refresh settings panel
+      if (this.settingsPanel) {
+        this.settingsPanel.innerHTML = "";
+        this._renderColumnCountSettings();
+        this._renderLayoutSettings();
+        this._renderColorSettings();
+        this._renderAdvancedSettings();
+      }
+    });
+
+    section.appendChild(resetButton);
+    this.settingsPanel!.appendChild(section);
+  }
+
+  private _createSliderSetting(
+    label: string,
+    value: number,
+    min: number,
+    max: number,
+    onChange: (value: number) => void
+  ): HTMLElement {
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "margin-bottom: 12px;";
+
+    const labelRow = document.createElement("div");
+    labelRow.style.cssText =
+      "display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;";
+
+    const labelElement = document.createElement("label");
+    labelElement.textContent = label;
+    labelElement.style.cssText = "font-size: 12px; color: #374151;";
+
+    const valueElement = document.createElement("span");
+    valueElement.textContent = `${value}px`;
+    valueElement.style.cssText = "font-size: 11px; color: #6b7280;";
+
+    labelRow.appendChild(labelElement);
+    labelRow.appendChild(valueElement);
+    wrapper.appendChild(labelRow);
+
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = min.toString();
+    slider.max = max.toString();
+    slider.value = value.toString();
+    slider.style.cssText = `
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: #e5e7eb;
+      outline: none;
+      -webkit-appearance: none;
+    `;
+
+    slider.addEventListener("input", (e) => {
+      const newValue = parseInt((e.target as HTMLInputElement).value);
+      valueElement.textContent = `${newValue}px`;
+      onChange(newValue);
+    });
+
+    wrapper.appendChild(slider);
+    return wrapper;
+  }
+
+  private _createColorSetting(
+    label: string,
+    value: string,
+    onChange: (value: string) => void
+  ): HTMLElement {
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "margin-bottom: 12px;";
+
+    const labelElement = document.createElement("label");
+    labelElement.textContent = label;
+    labelElement.style.cssText =
+      "display: block; font-size: 12px; color: #374151; margin-bottom: 4px;";
+    wrapper.appendChild(labelElement);
+
+    const colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.value = value;
+    colorInput.style.cssText = `
+      width: 100%;
+      height: 32px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      cursor: pointer;
+    `;
+
+    colorInput.addEventListener("input", (e) => {
+      const newValue = (e.target as HTMLInputElement).value;
+      onChange(newValue);
+    });
+
+    wrapper.appendChild(colorInput);
     return wrapper;
   }
 
   destroy(): void {
-    // Safely destroy all editors
     for (let i = 0; i < this.editors.length; i++) {
       const editor = this.editors[i];
       if (editor && editor.destroy) {
         try {
           const destroyPromise = editor.destroy();
-          // Only add catch if destroy returns a promise
           if (destroyPromise && typeof destroyPromise.catch === "function") {
             destroyPromise.catch((err: any) => {
               console.error(`Error destroying editor ${i}:`, err);
@@ -363,6 +685,7 @@ class CustomColumnsTool {
     this.editors = [];
     this.columnWrappers = [];
     this.wrapper = null;
+    this.settingsPanel = null;
   }
 }
 
