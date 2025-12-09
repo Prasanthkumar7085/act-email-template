@@ -104,7 +104,14 @@ function NestedElement({
                     <img
                         src={element.content || 'https://via.placeholder.com/600x300'}
                         alt="Email image"
-                        style={elementStyle}
+                        style={{
+                            display: element.styles?.display || 'block',
+                            width: element.styles?.width || '100%',
+                            maxWidth: element.styles?.maxWidth || '100%',
+                            height: element.styles?.height || 'auto',
+                            objectFit: element.styles?.objectFit || 'cover',
+                            ...elementStyle,
+                        }}
                         onClick={onSelect}
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x300';
@@ -281,7 +288,7 @@ function SortableElement({
                                 if (columnsChild && columnsChild.columns) {
                                     const newColumns = [...columnsChild.columns];
                                     newColumns[colIdx] = [...newColumns[colIdx], newEl];
-                                    const newChildren = element.children.map(c => 
+                                    const newChildren = element.children.map(c =>
                                         c.id === columnsChild.id ? { ...c, columns: newColumns } : c
                                     );
                                     onUpdate({ children: newChildren });
@@ -341,7 +348,14 @@ function SortableElement({
                     <img
                         src={element.content || 'https://via.placeholder.com/600x300'}
                         alt="Email image"
-                        style={elementStyle}
+                        style={{
+                            display: element.styles?.display || 'block',
+                            width: element.styles?.width || '100%',
+                            maxWidth: element.styles?.maxWidth || '100%',
+                            height: element.styles?.height || 'auto',
+                            objectFit: element.styles?.objectFit || 'cover',
+                            ...elementStyle,
+                        }}
                         onClick={onSelect}
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x300';

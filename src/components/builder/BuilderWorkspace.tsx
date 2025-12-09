@@ -20,17 +20,17 @@ interface Props {
     onDragDropElementsChange: (elements: EmailElement[]) => void
 }
 
-export default function BuilderWorkspace({ 
+export default function BuilderWorkspace({
     builderMode,
-    editorData, 
-    onEditorChange, 
-    editorRef, 
-    pageLayouts, 
-    updatePageLayout, 
-    professionalOptions, 
-    updateProfessionalOptions, 
-    activeView, 
-    loadTemplate, 
+    editorData,
+    onEditorChange,
+    editorRef,
+    pageLayouts,
+    updatePageLayout,
+    professionalOptions,
+    updateProfessionalOptions,
+    activeView,
+    loadTemplate,
     reInitializerEditor,
     dragDropElements,
     onDragDropElementsChange
@@ -83,9 +83,12 @@ export default function BuilderWorkspace({
                             className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${activeView === 'mobile' ? 'scale-90' : 'scale-100'
                                 }`}
                             style={{
-                                width: activeView === 'mobile' ? '375px' : `${page.width}px`,
-                                maxWidth: activeView === 'mobile' ? '375px' : `${page.maxWidth}px`,
+                                width: activeView === 'mobile' ? '420px' : `${page.width || 900}px`,
+                                maxWidth: activeView === 'mobile' ? '420px' : `${page.maxWidth || 900}px`,
                                 backgroundColor: page.background || '#ffffff',
+                                backgroundImage: page.backgroundImage ? `url(${page.backgroundImage})` : undefined,
+                                backgroundRepeat: page.backgroundRepeat || 'no-repeat',
+                                backgroundSize: page.backgroundSize || 'cover',
                                 borderRadius: `${page.borderRadius || 8}px`,
                                 padding: `${page.padding?.top || 40}px ${page.padding?.right || 40}px ${page.padding?.bottom || 40}px ${page.padding?.left || 40}px`,
                                 minHeight: page.height ? `${page.height}px` : 'auto',

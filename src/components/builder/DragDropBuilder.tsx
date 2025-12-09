@@ -22,6 +22,10 @@ export interface EmailElement {
     columnPadding?: string[]; // padding for each column
     styles?: {
         backgroundColor?: string;
+        backgroundImage?: string;
+        backgroundSize?: string;
+        backgroundRepeat?: string;
+        backgroundPosition?: string;
         color?: string;
         fontSize?: string;
         fontWeight?: string;
@@ -30,11 +34,20 @@ export interface EmailElement {
         margin?: string;
         borderRadius?: string;
         border?: string;
+        borderColor?: string;
+        borderStyle?: string;
+        borderWidth?: string;
+        borderTop?: string;
+        borderRight?: string;
+        borderBottom?: string;
+        borderLeft?: string;
         width?: string;
         height?: string;
+        maxWidth?: string;
         lineHeight?: string;
         fontFamily?: string;
         objectFit?: string;
+        display?: string;
     };
 }
 
@@ -49,6 +62,14 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
     const [activeId, setActiveId] = useState<string | null>(null);
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
     const [isDraggingFromPalette, setIsDraggingFromPalette] = useState(false);
+    const layout = pageLayouts?.[0] || {
+        width: 900,
+        maxWidth: 900,
+        background: '#ffffff',
+        borderRadius: 8,
+        padding: { top: 40, right: 40, bottom: 40, left: 40 },
+        height: 800,
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -77,7 +98,7 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
         if (String(active.id).startsWith('palette-')) {
             const elementType = String(active.id).replace('palette-', '') as EmailElement['type'];
             const newElement = createElementFromType(elementType);
-            
+
             // If dropped on a specific element, insert before it, otherwise append
             if (String(over.id) !== 'canvas-drop-zone' && !String(over.id).startsWith('palette-')) {
                 const targetIndex = elements.findIndex(el => el.id === over.id);
@@ -99,7 +120,7 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
         if (active.id !== over.id && !String(over.id).startsWith('palette-') && over.id !== 'canvas-drop-zone') {
             const oldIndex = elements.findIndex(el => el.id === active.id);
             const newIndex = elements.findIndex(el => el.id === over.id);
-            
+
             if (oldIndex !== -1 && newIndex !== -1) {
                 onElementsChange(arrayMove(elements, oldIndex, newIndex));
             }
@@ -108,7 +129,7 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
 
     const createElementFromType = (type: EmailElement['type']): EmailElement => {
         const baseId = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
+
         switch (type) {
             case 'heading':
                 return {
@@ -193,8 +214,12 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
                     content: 'https://via.placeholder.com/600x300',
                     styles: {
                         width: '100%',
+                        maxWidth: '100%',
+                        height: 'auto',
                         margin: '16px 0',
                         borderRadius: '8px',
+                        objectFit: 'cover',
+                        display: 'block',
                     }
                 };
             case 'spacer':
@@ -328,7 +353,7 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
 
     const moveElement = (direction: 'up' | 'down') => {
         if (!selectedElementId) return;
-        
+
         const findElementIndex = (els: EmailElement[], id: string, path: number[] = []): number[] | null => {
             for (let i = 0; i < els.length; i++) {
                 if (els[i].id === id) return [...path, i];
@@ -376,7 +401,7 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
             const index = path[0];
             const newIndex = direction === 'up' ? index - 1 : index + 1;
             if (newIndex < 0 || newIndex >= elements.length) return;
-            
+
             const newElements = arrayMove(elements, index, newIndex);
             onElementsChange(newElements);
             return;
@@ -431,48 +456,50 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
                     <div className="flex-1 overflow-auto p-6">
                         <div className="flex items-center justify-center min-h-full">
                             <div
-                                className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${
-                                    activeView === 'mobile' ? 'scale-90' : 'scale-100'
-                                }`}
+                                className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${activeView === 'mobile' ? 'scale-90' : 'scale-100'
+                                    }`}
                                 style={{
-                                    width: activeView === 'mobile' ? '375px' : `${pageLayouts[0]?.width || 900}px`,
-                                    maxWidth: activeView === 'mobile' ? '375px' : `${pageLayouts[0]?.maxWidth || 900}px`,
-                                    backgroundColor: pageLayouts[0]?.background || '#ffffff',
-                                    borderRadius: `${pageLayouts[0]?.borderRadius || 8}px`,
-                                    padding: `${pageLayouts[0]?.padding?.top || 40}px ${pageLayouts[0]?.padding?.right || 40}px ${pageLayouts[0]?.padding?.bottom || 40}px ${pageLayouts[0]?.padding?.left || 40}px`,
-                                    minHeight: pageLayouts[0]?.height ? `${pageLayouts[0]?.height}px` : 'auto',
+                                    width: activeView === 'mobile' ? '420px' : `${layout.width || 900}px`,
+                                    maxWidth: activeView === 'mobile' ? '420px' : `${layout.maxWidth || 900}px`,
+                                    backgroundColor: layout.background || '#ffffff',
+                                    backgroundImage: layout.backgroundImage ? `url(${layout.backgroundImage})` : undefined,
+                                    backgroundSize: layout.backgroundSize || 'cover',
+                                    backgroundRepeat: layout.backgroundRepeat || 'no-repeat',
+                                    borderRadius: `${layout.borderRadius || 8}px`,
+                                    padding: `${layout.padding?.top || 40}px ${layout.padding?.right || 40}px ${layout.padding?.bottom || 40}px ${layout.padding?.left || 40}px`,
+                                    minHeight: layout.height ? `${layout.height}px` : 'auto',
                                 }}
                             >
                                 <SortableContext items={elements.map(el => el.id)} strategy={verticalListSortingStrategy}>
-                                <DragDropCanvas
-                                    elements={elements}
-                                    selectedElementId={selectedElementId}
-                                    onSelectElement={setSelectedElementId}
-                                    onUpdateElement={updateElement}
-                                    onDeleteElement={deleteElement}
-                                    onAddElementToContainer={addElementToContainer}
-                                    onAddElementToColumn={addElementToColumn}
-                                    onMoveElementUp={(id) => {
-                                        const index = elements.findIndex(el => el.id === id);
-                                        if (index > 0) {
-                                            onElementsChange(arrayMove(elements, index, index - 1));
-                                        }
-                                    }}
-                                    onMoveElementDown={(id) => {
-                                        const index = elements.findIndex(el => el.id === id);
-                                        if (index < elements.length - 1) {
-                                            onElementsChange(arrayMove(elements, index, index + 1));
-                                        }
-                                    }}
-                                    canMoveUp={(id) => {
-                                        const index = elements.findIndex(el => el.id === id);
-                                        return index > 0;
-                                    }}
-                                    canMoveDown={(id) => {
-                                        const index = elements.findIndex(el => el.id === id);
-                                        return index >= 0 && index < elements.length - 1;
-                                    }}
-                                />
+                                    <DragDropCanvas
+                                        elements={elements}
+                                        selectedElementId={selectedElementId}
+                                        onSelectElement={setSelectedElementId}
+                                        onUpdateElement={updateElement}
+                                        onDeleteElement={deleteElement}
+                                        onAddElementToContainer={addElementToContainer}
+                                        onAddElementToColumn={addElementToColumn}
+                                        onMoveElementUp={(id) => {
+                                            const index = elements.findIndex(el => el.id === id);
+                                            if (index > 0) {
+                                                onElementsChange(arrayMove(elements, index, index - 1));
+                                            }
+                                        }}
+                                        onMoveElementDown={(id) => {
+                                            const index = elements.findIndex(el => el.id === id);
+                                            if (index < elements.length - 1) {
+                                                onElementsChange(arrayMove(elements, index, index + 1));
+                                            }
+                                        }}
+                                        canMoveUp={(id) => {
+                                            const index = elements.findIndex(el => el.id === id);
+                                            return index > 0;
+                                        }}
+                                        canMoveDown={(id) => {
+                                            const index = elements.findIndex(el => el.id === id);
+                                            return index >= 0 && index < elements.length - 1;
+                                        }}
+                                    />
                                 </SortableContext>
                             </div>
                         </div>

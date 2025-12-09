@@ -1,4 +1,4 @@
-import { convertEditorJSToHTMLWithStyles } from "../components/builder/emailTemplates";
+import { convertEditorJSToHTML } from "../components/builder/emailTemplates";
 
 export async function convertEditorjsToHtml(editorData: any): Promise<string> {
   const blocks = Array.isArray(editorData)
@@ -6,8 +6,9 @@ export async function convertEditorjsToHtml(editorData: any): Promise<string> {
     : editorData?.blocks || [];
 
   try {
-    return convertEditorJSToHTMLWithStyles(editorData);
+    // Use convertEditorJSToHTML directly to get HTML with inline styles only (no classes)
+    return convertEditorJSToHTML(editorData);
   } catch (err) {
-    return Promise.resolve(convertEditorJSToHTMLWithStyles(blocks));
+    return Promise.resolve(convertEditorJSToHTML(blocks));
   }
 }

@@ -20,37 +20,10 @@ const sanitizeHTML = (html: string): string => {
 };
 
 /**
- * Get alignment CSS from block tunes
+ * Normalize camelCase style keys to kebab-case for inline CSS.
  */
-const getAlignmentStyle = (block: EditorJSBlock): string => {
-  const alignment = block.tunes?.alignment?.alignment;
-  if (alignment && alignment !== "left") {
-    return `text-align: ${alignment};`;
-  }
-  return "";
-};
-
-/**
- * Get indent CSS from block tunes
- */
-const getIndentStyle = (block: EditorJSBlock): string => {
-  const indentLevel = block.tunes?.indentTune?.indentLevel;
-  if (indentLevel && indentLevel > 0) {
-    return `margin-left: ${indentLevel * 40}px;`;
-  }
-  return "";
-};
-
-/**
- * Combine all block-level styles
- */
-const getBlockStyles = (block: EditorJSBlock): string => {
-  const styles = [getAlignmentStyle(block), getIndentStyle(block)].filter(
-    Boolean
-  );
-
-  return styles.length > 0 ? ` style="${styles.join(" ")}"` : "";
-};
+const camelToKebab = (str: string): string =>
+  str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 
 /**
  * Get style object (for easier manipulation)
@@ -76,9 +49,25 @@ const getStyleObject = (block: EditorJSBlock): Record<string, string> => {
  */
 const styleObjectToString = (styles: Record<string, string>): string => {
   const styleStr = Object.entries(styles)
-    .map(([key, value]) => `${key}: ${value}`)
+    .filter(
+      ([, value]) => value !== undefined && value !== null && value !== ""
+    )
+    .map(([key, value]) => `${camelToKebab(key)}: ${value}`)
     .join("; ");
   return styleStr ? ` style="${styleStr}"` : "";
+};
+
+/**
+ * Merge default styles with block-level alignment/indent styles.
+ */
+const mergeBlockStyles = (
+  block: EditorJSBlock,
+  baseStyles: Record<string, string> = {}
+): string => {
+  return styleObjectToString({
+    ...baseStyles,
+    ...getStyleObject(block),
+  });
 };
 
 /**
@@ -86,8 +75,13 @@ const styleObjectToString = (styles: Record<string, string>): string => {
  */
 const convertParagraph = (block: EditorJSBlock): string => {
   const text = sanitizeHTML(block.data.text || "");
-  const blockStyles = getBlockStyles(block);
-  return `<p${blockStyles}>${text}</p>`;
+  const paragraphStyles = mergeBlockStyles(block, {
+    margin: "0 0 16px",
+    "line-height": "1.6",
+    color: "#0f172a",
+    "font-size": "16px",
+  });
+  return `<p${paragraphStyles}>${text}</p>`;
 };
 
 /**
@@ -96,8 +90,22 @@ const convertParagraph = (block: EditorJSBlock): string => {
 const convertHeader = (block: EditorJSBlock): string => {
   const level = block.data.level || 2;
   const text = sanitizeHTML(block.data.text || "");
-  const blockStyles = getBlockStyles(block);
-  return `<h${level}${blockStyles}>${text}</h${level}>`;
+  const sizeMap: Record<number, string> = {
+    1: "32px",
+    2: "28px",
+    3: "24px",
+    4: "20px",
+    5: "18px",
+    6: "16px",
+  };
+  const headerStyles = mergeBlockStyles(block, {
+    margin: "0 0 12px",
+    "line-height": "1.3",
+    "font-weight": "700",
+    color: "#0f172a",
+    "font-size": sizeMap[level] || "24px",
+  });
+  return `<h${level}${headerStyles}>${text}</h${level}>`;
 };
 
 /**
@@ -121,9 +129,13 @@ const convertList = (block: EditorJSBlock): string => {
     listAttrs = ` type="${type}"`;
   }
 
-  // Get style object and add to it
-  const styleObj = getStyleObject(block);
-  const styleStr = styleObjectToString(styleObj);
+  const styleStr = mergeBlockStyles(block, {
+    margin: "0 0 16px",
+    "padding-left": "28px",
+    "line-height": "1.6",
+    color: "#0f172a",
+    "font-size": "16px",
+  });
 
   // Recursively render list items
   const renderItems = (items: any[]): string => {
@@ -162,26 +174,24 @@ const convertTable = (block: EditorJSBlock): string => {
     return "";
   }
 
-  // Get alignment and indent
-  const styleObj = getStyleObject(block);
-
   // Extract table-level styles
   const tableStyles = styles.table || {};
   const cellStyles = styles.cells || {};
   const rowStyles = styles.rows || {};
 
-  // Convert camelCase to kebab-case for CSS
-  const camelToKebab = (str: string): string => {
-    return str.replace(/([A-Z])/g, "-$1").toLowerCase();
+  // Merge block styles with table styles and sensible defaults
+  const mergedTableStyles = {
+    width: "100%",
+    "border-collapse": "collapse",
+    margin: "24px 0",
+    "font-size": "16px",
+    color: "#0f172a",
+    ...getStyleObject(block),
+    ...tableStyles,
   };
+  const tableStyleStr = styleObjectToString(mergedTableStyles);
 
-  // Merge block styles with table styles
-  const mergedTableStyles = { ...styleObj, ...tableStyles };
-  const tableStyleStr = Object.entries(mergedTableStyles)
-    .map(([key, value]) => `${camelToKebab(key)}: ${value}`)
-    .join("; ");
-
-  let html = `<table${tableStyleStr ? ` style="${tableStyleStr}"` : ""}>`;
+  let html = `<table${tableStyleStr}>`;
 
   // Process header rows if specified
   if (withHeading && headerRows.length > 0) {
@@ -228,14 +238,13 @@ const processTableRow = (
   const tag = isHeader ? "th" : "td";
 
   // Get row-specific styles
-  const rowStyle = rowStyles[rowIndex];
-  const rowStyleStr = rowStyle
-    ? Object.entries(rowStyle)
-        .map(([k, v]) => `${k.replace(/([A-Z])/g, "-$1").toLowerCase()}: ${v}`)
-        .join("; ")
-    : "";
+  const rowStyle = rowStyles[rowIndex] || {};
+  const rowStyleAttr = styleObjectToString({
+    "background-color": isHeader ? "#f8fafc" : undefined,
+    ...rowStyle,
+  });
 
-  let html = `<tr${rowStyleStr ? ` style="${rowStyleStr}"` : ""}>`;
+  let html = `<tr${rowStyleAttr}>`;
 
   // Process each cell
   row.forEach((cell: string, cellIndex: number) => {
@@ -251,13 +260,15 @@ const processTableRow = (
       } else if (key === "rowSpan" && typeof value === "number" && value > 1) {
         rowSpan = ` rowspan="${value}"`;
       } else {
-        const cssKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
+        const cssKey = camelToKebab(key);
         cellStyleParts.push(`${cssKey}: ${value}`);
       }
     });
 
     const cellStyle =
-      cellStyleParts.length > 0 ? ` style="${cellStyleParts.join("; ")}"` : "";
+      cellStyleParts.length > 0
+        ? ` style="${cellStyleParts.join("; ")}"`
+        : ` style="padding: 10px 12px; border: 1px solid #e5e7eb; text-align: left;"`;
 
     html += `<${tag}${cellStyle}${colSpan}${rowSpan}>${sanitizeHTML(cell)}</${tag}>`;
   });
@@ -283,7 +294,11 @@ const convertImage = (block: EditorJSBlock): string => {
     return "";
   }
 
-  const imgStyles: string[] = [];
+  const imgStyles: string[] = [
+    "display: block",
+    "max-width: 100%",
+    "height: auto",
+  ];
 
   if (dimensions.width) {
     imgStyles.push(`width: ${dimensions.width}`);
@@ -312,7 +327,10 @@ const convertImage = (block: EditorJSBlock): string => {
     imgStyles.length > 0 ? ` style="${imgStyles.join("; ")}"` : "";
 
   // Get figure styles (alignment and indent)
-  const figureStyles = getBlockStyles(block);
+  const figureStyles = mergeBlockStyles(block, {
+    margin: "16px 0",
+    "text-align": block.tunes?.alignment?.alignment || "left",
+  });
 
   let html = `<figure${figureStyles}>`;
   html += `<img src="${file.url}" alt="${caption}"${imgStyleAttr} />`;
@@ -333,7 +351,16 @@ const convertQuote = (block: EditorJSBlock): string => {
   const caption = block.data.caption
     ? `<cite>${sanitizeHTML(block.data.caption)}</cite>`
     : "";
-  const blockStyles = getBlockStyles(block);
+  const blockStyles = mergeBlockStyles(block, {
+    margin: "20px 0",
+    padding: "12px 16px",
+    "border-left": "4px solid #e5e7eb",
+    "border-radius": "10px",
+    "background-color": "#f8fafc",
+    color: "#4b5563",
+    "font-style": "italic",
+    "line-height": "1.6",
+  });
 
   return `<blockquote${blockStyles}><p>${text}</p>${caption}</blockquote>`;
 };
@@ -343,7 +370,6 @@ const convertQuote = (block: EditorJSBlock): string => {
  */
 const convertCode = (block: EditorJSBlock): string => {
   const code = block.data.code || "";
-  const blockStyles = getBlockStyles(block);
 
   // Escape HTML in code blocks
   const escapedCode = code
@@ -352,6 +378,21 @@ const convertCode = (block: EditorJSBlock): string => {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+
+  const blockStyles = mergeBlockStyles(block, {
+    margin: "20px 0",
+    padding: "16px",
+    "background-color": "#0f172a",
+    color: "#e2e8f0",
+    "border-radius": "10px",
+    "font-family":
+      "'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    "font-size": "14px",
+    "line-height": "1.6",
+    "white-space": "pre-wrap",
+    "word-break": "break-word",
+    "overflow-x": "auto",
+  });
 
   return `<pre${blockStyles}><code>${escapedCode}</code></pre>`;
 };
@@ -394,7 +435,10 @@ const convertEmbed = (block: EditorJSBlock): string => {
     return "";
   }
 
-  const blockStyles = getBlockStyles(block);
+  const blockStyles = mergeBlockStyles(block, {
+    margin: "24px 0",
+    "text-align": "center",
+  });
 
   let html = `<figure${blockStyles}>`;
   html += `<iframe src="${embed}" width="${width}" height="${height}" frameborder="0" allowfullscreen></iframe>`;

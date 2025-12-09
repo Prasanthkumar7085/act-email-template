@@ -185,3 +185,9 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(22px);
 }
+
+@media (min-width: 651px) {
+  .codex-editor--narrow .codex-editor__redactor {
+    margin-right: 0 !important;
+  }
+}

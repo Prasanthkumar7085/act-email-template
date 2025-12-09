@@ -5,13 +5,14 @@ interface Props {
     setActiveView: (v: 'desktop' | 'mobile') => void
     openPreview: () => void
     exportHtml: () => void
+    showHtml: () => void
     exportJson: () => void
     clearCanvas: () => void
     builderMode: 'editorjs' | 'dragdrop'
     setBuilderMode: (mode: 'editorjs' | 'dragdrop') => void
 }
 
-export default function BuilderHeader({ activeView, setActiveView, openPreview, exportHtml, exportJson, clearCanvas, builderMode, setBuilderMode }: Props) {
+export default function BuilderHeader({ activeView, setActiveView, openPreview, exportHtml, showHtml, exportJson, clearCanvas, builderMode, setBuilderMode }: Props) {
     return (
         <div className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
@@ -78,6 +79,12 @@ export default function BuilderHeader({ activeView, setActiveView, openPreview, 
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
                     >
                         📄 Export HTML
+                    </button>
+                    <button
+                        onClick={showHtml}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors text-sm"
+                    >
+                        💻 Show HTML
                     </button>
                     <button
                         onClick={exportJson}
