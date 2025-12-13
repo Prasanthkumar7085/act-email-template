@@ -1,4 +1,3 @@
-import React from 'react'
 
 interface Props {
     activeView: 'desktop' | 'mobile'
@@ -10,9 +9,10 @@ interface Props {
     clearCanvas: () => void
     builderMode: 'editorjs' | 'dragdrop'
     setBuilderMode: (mode: 'editorjs' | 'dragdrop') => void
+    onImportHtml: () => void
 }
 
-export default function BuilderHeader({ activeView, setActiveView, openPreview, exportHtml, showHtml, exportJson, clearCanvas, builderMode, setBuilderMode }: Props) {
+export default function BuilderHeader({ activeView, setActiveView, openPreview, exportHtml, showHtml, exportJson, clearCanvas, builderMode, setBuilderMode, onImportHtml }: Props) {
     return (
         <div className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
@@ -91,6 +91,12 @@ export default function BuilderHeader({ activeView, setActiveView, openPreview, 
                         className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
                     >
                         💾 Save JSON
+                    </button>
+                    <button
+                        onClick={onImportHtml}
+                        className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors text-sm"
+                    >
+                        📥 Import HTML
                     </button>
                     <button
                         onClick={clearCanvas}

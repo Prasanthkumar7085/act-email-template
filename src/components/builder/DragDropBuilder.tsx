@@ -70,6 +70,7 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
         padding: { top: 40, right: 40, bottom: 40, left: 40 },
         height: 800,
     };
+    console.log(elements, "fkdsafkasjdkjfdksj")
 
     const sensors = useSensors(
         useSensor(PointerSensor, {

@@ -4,6 +4,9 @@ import BuilderHeader from './BuilderHeader';
 import BuilderWorkspace from './BuilderWorkspace';
 import { EmailElement } from './DragDropBuilder';
 import { buildEmailFromDragDrop } from '../../lib/renderDragDropTemplate';
+import ImportHtmlDialog from './ImportHtmlDialog';
+import { htmlToEditorJS } from '../../lib/htmlToEditorJS';
+import { htmlToBlocks } from '@/lib/htmlToDragDrop';
 
 interface EditorData {
     time: number;
@@ -56,6 +59,7 @@ export default function BuilderPage() {
     const [previewHtml, setPreviewHtml] = useState<string | null>(null);
     const [showHtmlDialog, setShowHtmlDialog] = useState(false);
     const [htmlCode, setHtmlCode] = useState<string>('');
+    const [showImportHtmlDialog, setShowImportHtmlDialog] = useState(false);
     const [activeView, setActiveView] = useState<'desktop' | 'mobile'>('desktop');
     const [builderMode, setBuilderMode] = useState<'editorjs' | 'dragdrop'>('editorjs');
     const [dragDropElements, setDragDropElements] = useState<EmailElement[]>([]);
@@ -194,14 +198,6 @@ export default function BuilderPage() {
         return formatted.join('\n');
     };
 
-    const escapeHtml = (html: string): string => {
-        return html
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    };
 
     const showHtml = async () => {
         let html: string;
@@ -243,6 +239,24 @@ export default function BuilderPage() {
         [editorData]
     );
 
+    const handleImportHtml = (htmlString: string) => {
+        try {
+            if (builderMode === 'editorjs') {
+                // Convert HTML to EditorJS blocks
+                const editorJSData = htmlToEditorJS(htmlString);
+                setEditorData(editorJSData);
+                setReInitializerEditor(!reInitializerEditor);
+            } else {
+                // Convert HTML to DragDrop elements
+                const dragDropElements = htmlToBlocks(htmlString);
+                setDragDropElements(dragDropElements);
+            }
+        } catch (error) {
+            console.error('Error importing HTML:', error);
+            alert('Failed to import HTML. Please check the HTML format and try again.');
+        }
+    };
+
     return (
         <div className="h-screen flex flex-col bg-gray-50">
             <BuilderHeader
@@ -255,6 +269,7 @@ export default function BuilderPage() {
                 clearCanvas={clearCanvas}
                 builderMode={builderMode}
                 setBuilderMode={setBuilderMode}
+                onImportHtml={() => setShowImportHtmlDialog(true)}
             />
 
             <BuilderWorkspace
@@ -320,10 +335,10 @@ export default function BuilderPage() {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-8">
-                            <div className="w-full flex items-center justify-center">
+                        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 flex items-start justify-center p-8">
+                            <div className="w-full flex items-start justify-center min-h-full">
                                 <div
-                                    className="bg-white shadow-2xl rounded-lg overflow-hidden border border-gray-200"
+                                    className="bg-white shadow-2xl rounded-lg border border-gray-200"
                                     style={{
                                         width: activeView === 'mobile' ? '375px' : '600px',
                                         maxWidth: activeView === 'mobile' ? '375px' : '600px',
@@ -332,6 +347,8 @@ export default function BuilderPage() {
                                         backgroundRepeat: pageLayouts[0]?.backgroundRepeat || 'no-repeat',
                                         backgroundSize: pageLayouts[0]?.backgroundSize || 'cover',
                                         transition: 'all 0.3s ease',
+                                        overflow: 'auto',
+                                        maxHeight: 'calc(100vh - 200px)',
                                     }}
                                     dangerouslySetInnerHTML={{ __html: previewHtml || '' }}
                                 />
@@ -378,6 +395,13 @@ export default function BuilderPage() {
                     </div>
                 </div>
             )}
+
+            <ImportHtmlDialog
+                isOpen={showImportHtmlDialog}
+                onClose={() => setShowImportHtmlDialog(false)}
+                onImport={handleImportHtml}
+                builderMode={builderMode}
+            />
         </div>
     )
 }
