@@ -59,15 +59,47 @@ export default function NestedElement({
         switch (element.type) {
             case 'heading':
                 const HeadingTag = `h${element.level || 1}` as keyof JSX.IntrinsicElements;
+                const headingContent = element.content || 'Heading';
+                if (element.linkUrl) {
+                    return (
+                        <HeadingTag style={elementStyle} onClick={(e) => { e.stopPropagation(); onSelect(e); }}>
+                            <a
+                                href={element.linkUrl}
+                                target={element.linkTarget || '_self'}
+                                rel={element.linkTarget === '_blank' ? 'noopener noreferrer' : undefined}
+                                style={{ color: 'inherit', textDecoration: 'none' }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {headingContent}
+                            </a>
+                        </HeadingTag>
+                    );
+                }
                 return (
                     <HeadingTag style={elementStyle} onClick={(e) => { e.stopPropagation(); onSelect(e); }}>
-                        {element.content || 'Heading'}
+                        {headingContent}
                     </HeadingTag>
                 );
             case 'paragraph':
+                const paragraphContent = element.content || 'Paragraph';
+                if (element.linkUrl) {
+                    return (
+                        <p style={elementStyle} onClick={(e) => { e.stopPropagation(); onSelect(e); }}>
+                            <a
+                                href={element.linkUrl}
+                                target={element.linkTarget || '_self'}
+                                rel={element.linkTarget === '_blank' ? 'noopener noreferrer' : undefined}
+                                style={{ color: 'inherit', textDecoration: 'underline' }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {paragraphContent}
+                            </a>
+                        </p>
+                    );
+                }
                 return (
                     <p style={elementStyle} onClick={(e) => { e.stopPropagation(); onSelect(e); }}>
-                        {element.content || 'Paragraph'}
+                        {paragraphContent}
                     </p>
                 );
             case 'list':
@@ -89,21 +121,40 @@ export default function NestedElement({
                     </ul>
                 );
             case 'button':
+                const buttonContent = element.content || 'Button';
+                const buttonStyle = {
+                    backgroundColor: element.styles?.backgroundColor || '#06b6d4',
+                    color: element.styles?.color || '#ffffff',
+                    padding: element.styles?.padding || '12px 24px',
+                    borderRadius: element.styles?.borderRadius || '8px',
+                    fontSize: element.styles?.fontSize || '16px',
+                    fontWeight: element.styles?.fontWeight || '600',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    display: 'inline-block',
+                };
+
+                if (element.url) {
+                    return (
+                        <div style={{ ...elementStyle, textAlign: element.styles?.textAlign || 'center' }} onClick={(e) => { e.stopPropagation(); onSelect(e); }}>
+                            <a
+                                href={element.url}
+                                target={element.linkTarget || '_blank'}
+                                rel={element.linkTarget === '_blank' ? 'noopener noreferrer' : undefined}
+                                style={buttonStyle}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {buttonContent}
+                            </a>
+                        </div>
+                    );
+                }
+
                 return (
                     <div style={{ ...elementStyle, textAlign: element.styles?.textAlign || 'center' }} onClick={(e) => { e.stopPropagation(); onSelect(e); }}>
-                        <button
-                            style={{
-                                backgroundColor: element.styles?.backgroundColor || '#06b6d4',
-                                color: element.styles?.color || '#ffffff',
-                                padding: element.styles?.padding || '12px 24px',
-                                borderRadius: element.styles?.borderRadius || '8px',
-                                fontSize: element.styles?.fontSize || '16px',
-                                fontWeight: element.styles?.fontWeight || '600',
-                                border: 'none',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            {element.content || 'Button'}
+                        <button style={buttonStyle}>
+                            {buttonContent}
                         </button>
                     </div>
                 );

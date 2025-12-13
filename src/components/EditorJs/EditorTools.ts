@@ -16,12 +16,15 @@ import CustomImageTool from "./CustomImageTool";
 import CustomTableTool from "./CustomTableTool";
 import { HorizontalLineTool } from "./CustomHorizontalLineTool";
 import ButtonTool from "./CustomButtonTool";
-import Layout from "editorjs-layout";
 import CustomColumnsTool from "./CustomLayoutTool";
-import SocialMediaTool from "./CustomSocialMedialTool";
 import Quote from "@editorjs/quote";
+import EditorJS from "@editorjs/editorjs";
 
-function getColumnTools(responseId: any, isEditable: any) {
+function getColumnTools(
+  responseId: any,
+  isEditable: any,
+  EditorJSLibrary: typeof EditorJS = EditorJS
+): Record<string, any> {
   return {
     header: {
       class: CustomHeaderTool,
@@ -104,13 +107,37 @@ function getColumnTools(responseId: any, isEditable: any) {
     inlineCode: {
       class: InlineCode,
     },
+    // columns: {
+    //   class: CustomColumnsTool,
+    //   config: {
+    //     EditorJS: EditorJSLibrary || EditorJS,
+    //     tools: getColumnTools(
+    //       responseId,
+    //       isEditable,
+    //       EditorJSLibrary || EditorJS
+    //     ),
+    //     enableLayoutEditing: true,
+    //     enableLayoutSaving: true,
+    //   },
+    //   shortcut: "CMD+ALT+C",
+    // },
+    horizontalLine: {
+      class: HorizontalLineTool,
+      tunes: ["indentTune"],
+      config: {
+        defaultStyle: "solid",
+        defaultThickness: 2,
+        defaultColor: "#000000",
+        defaultAlignment: "center",
+        preserveBlank: true,
+      },
+    },
     button: {
       class: ButtonTool,
       shortcut: "CMD+ALT+B",
     },
   };
 }
-
 export function configureEditorTools({
   responseId,
   setOpenTableProperties,
@@ -300,8 +327,8 @@ export function configureEditorTools({
     columns: {
       class: CustomColumnsTool,
       config: {
-        EditorJsLibrary: EditorJS,
-        tools: getColumnTools(responseId, isEditable),
+        EditorJS: EditorJS,
+        tools: getColumnTools(responseId, isEditable, EditorJS),
         enableLayoutEditing: true,
         enableLayoutSaving: true,
       },

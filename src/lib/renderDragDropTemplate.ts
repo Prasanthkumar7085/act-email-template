@@ -38,10 +38,24 @@ function renderElement(element: EmailElement): string {
     case "heading":
       const level = element.level || 1;
       const HeadingTag = `h${level}`;
-      return `<${HeadingTag} style="${styleAttr}">${element.content || "Heading"}</${HeadingTag}>`;
+      const headingContent = element.content || "Heading";
+      if (element.linkUrl) {
+        const linkTarget = element.linkTarget || "_self";
+        const linkRel =
+          linkTarget === "_blank" ? ' rel="noopener noreferrer"' : "";
+        return `<${HeadingTag} style="${styleAttr}"><a href="${element.linkUrl}" target="${linkTarget}"${linkRel} style="color: inherit; text-decoration: none;">${headingContent}</a></${HeadingTag}>`;
+      }
+      return `<${HeadingTag} style="${styleAttr}">${headingContent}</${HeadingTag}>`;
 
     case "paragraph":
-      return `<p style="${styleAttr}">${element.content || "Paragraph"}</p>`;
+      const paragraphContent = element.content || "Paragraph";
+      if (element.linkUrl) {
+        const linkTarget = element.linkTarget || "_self";
+        const linkRel =
+          linkTarget === "_blank" ? ' rel="noopener noreferrer"' : "";
+        return `<p style="${styleAttr}"><a href="${element.linkUrl}" target="${linkTarget}"${linkRel} style="color: inherit; text-decoration: underline;">${paragraphContent}</a></p>`;
+      }
+      return `<p style="${styleAttr}">${paragraphContent}</p>`;
 
     case "list":
       const listStyle = element.listStyle || "unordered";
@@ -107,12 +121,16 @@ function renderElement(element: EmailElement): string {
       const buttonFontSize = element.styles?.fontSize || "16px";
       const buttonFontWeight = element.styles?.fontWeight || "600";
       const textAlign = element.styles?.textAlign || "center";
+      const buttonUrl = element.url || "#";
+      const buttonTarget = element.linkTarget || "_blank";
+      const buttonRel =
+        buttonTarget === "_blank" ? 'rel="noopener noreferrer"' : "";
       // Use table-based button for better email client support
       return `
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="${styleAttr}">
                     <tr>
                         <td align="${textAlign}" style="padding: 8px 0;">
-                            <a href="#" style="background-color: ${buttonBgColor}; color: ${buttonColor}; padding: ${buttonPadding}; border-radius: ${buttonRadius}; font-size: ${buttonFontSize}; font-weight: ${buttonFontWeight}; text-decoration: none; display: inline-block; border: none;">
+                            <a href="${buttonUrl}" target="${buttonTarget}" ${buttonRel} style="background-color: ${buttonBgColor}; color: ${buttonColor}; padding: ${buttonPadding}; border-radius: ${buttonRadius}; font-size: ${buttonFontSize}; font-weight: ${buttonFontWeight}; text-decoration: none; display: inline-block; border: none;">
                                 ${element.content || "Button"}
                             </a>
                         </td>

@@ -256,7 +256,7 @@ export default function BuilderPage() {
             alert('Failed to import HTML. Please check the HTML format and try again.');
         }
     };
-
+    console.log(editorData, "editorData")
     return (
         <div className="h-screen flex flex-col bg-gray-50">
             <BuilderHeader

@@ -20,6 +20,9 @@ export interface EmailElement {
     columnAlign?: 'stretch' | 'start' | 'center' | 'end'; // vertical alignment of columns
     columnColors?: string[]; // background colors for each column
     columnPadding?: string[]; // padding for each column
+    url?: string; // for buttons - link URL
+    linkUrl?: string; // for headings, paragraphs - link URL
+    linkTarget?: '_blank' | '_self'; // link target (default _blank for buttons, _self for text)
     styles?: {
         backgroundColor?: string;
         backgroundImage?: string;
@@ -196,6 +199,8 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
                     id: baseId,
                     type: 'button',
                     content: 'Click Me',
+                    url: '',
+                    linkTarget: '_blank',
                     styles: {
                         backgroundColor: '#06b6d4',
                         color: '#ffffff',

@@ -66,7 +66,7 @@ class CustomColumnsTool {
         config?.defaultColumnBackgroundColor || "#fafafa",
       defaultBorderColor: config?.defaultBorderColor || "#e8e8eb",
       defaultBorderRadius: config?.defaultBorderRadius || 8,
-      defaultPadding: config?.defaultPadding || 15,
+      defaultPadding: config?.defaultPadding || 8,
     };
 
     this.data = {
@@ -111,10 +111,12 @@ class CustomColumnsTool {
       display: flex;
       gap: ${this.data.layout.gap}px;
       width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       margin: 10px 0;
       position: relative;
       background: ${this.data.layout.backgroundColor};
-      padding: 10px;
+      padding: 8px;
       border-radius: ${this.data.layout.borderRadius}px;
       ${this.data.layout.customCSS}
     `;
@@ -159,13 +161,19 @@ class CustomColumnsTool {
       const columnWrapper = document.createElement("div");
       columnWrapper.classList.add("custom-column");
       columnWrapper.style.cssText = `
-        flex: 1;
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
         border: 1px solid ${this.data.layout.borderColor};
         border-radius: ${this.data.layout.borderRadius}px;
         padding: ${this.data.layout.padding}px;
         background: ${this.data.layout.columnBackgroundColor};
         min-height: 100px;
         transition: all 0.3s ease;
+        overflow: hidden;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       `;
 
       const editorHolder = document.createElement("div");
@@ -173,8 +181,14 @@ class CustomColumnsTool {
       editorHolder.style.cssText = `
         background: white;
         border-radius: 4px;
-        padding: 10px;
+        padding: 6px;
         min-height: 80px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       `;
 
       columnWrapper.appendChild(editorHolder);
@@ -201,7 +215,7 @@ class CustomColumnsTool {
 
       const editor = new this.config.EditorJS({
         holder: holderId,
-        tools: this.config.tools,
+        tools: this.config.tools, // This includes columns tool, enabling nested columns
         data: {
           blocks: this.data.cols[columnIndex]?.blocks || [],
         },
@@ -223,6 +237,16 @@ class CustomColumnsTool {
         },
         onReady: () => {
           this.editors[columnIndex] = editor;
+          // Ensure editor content doesn't exceed column width
+          const editorElement = document.getElementById(holderId);
+          if (editorElement) {
+            const codexEditor = editorElement.querySelector(".codex-editor");
+            if (codexEditor) {
+              (codexEditor as HTMLElement).style.maxWidth = "100%";
+              (codexEditor as HTMLElement).style.boxSizing = "border-box";
+              (codexEditor as HTMLElement).style.overflow = "hidden";
+            }
+          }
         },
       });
     } catch (error) {

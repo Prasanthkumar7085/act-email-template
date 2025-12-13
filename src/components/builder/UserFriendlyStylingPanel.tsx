@@ -183,15 +183,71 @@ export default function UserFriendlyStylingPanel({
         <div className="p-4 space-y-6">
             {/* Content Section */}
             {(element.type === 'heading' || element.type === 'paragraph' || element.type === 'button') && (
-                <div className="border-b pb-4">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Content</label>
-                    <textarea
-                        value={element.content || ''}
-                        onChange={(e) => updateContent(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows={element.type === 'heading' ? 2 : 4}
-                        placeholder="Enter your text here..."
-                    />
+                <div className="border-b pb-4 space-y-4">
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">Content</label>
+                        <textarea
+                            value={element.content || ''}
+                            onChange={(e) => updateContent(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows={element.type === 'heading' ? 2 : 4}
+                            placeholder="Enter your text here..."
+                        />
+                    </div>
+
+                    {/* Link URL for buttons */}
+                    {element.type === 'button' && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                Link URL <span className="text-xs text-gray-500">(opens in new window)</span>
+                            </label>
+                            <input
+                                type="url"
+                                value={element.url || ''}
+                                onChange={(e) => onUpdate({ url: e.target.value, linkTarget: '_blank' })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="https://example.com"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Leave empty to disable link</p>
+                        </div>
+                    )}
+
+                    {/* Link URL for headings and paragraphs */}
+                    {(element.type === 'heading' || element.type === 'paragraph') && (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                Link URL <span className="text-xs text-gray-500">(optional)</span>
+                            </label>
+                            <input
+                                type="url"
+                                value={element.linkUrl || ''}
+                                onChange={(e) => onUpdate({ linkUrl: e.target.value, linkTarget: element.linkTarget || '_self' })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="https://example.com"
+                            />
+                            <div className="mt-2 flex items-center space-x-4">
+                                <label className="flex items-center space-x-2">
+                                    <input
+                                        type="radio"
+                                        checked={(element.linkTarget || '_self') === '_self'}
+                                        onChange={() => onUpdate({ linkTarget: '_self' })}
+                                        className="text-blue-600"
+                                    />
+                                    <span className="text-sm text-gray-700">Same window</span>
+                                </label>
+                                <label className="flex items-center space-x-2">
+                                    <input
+                                        type="radio"
+                                        checked={element.linkTarget === '_blank'}
+                                        onChange={() => onUpdate({ linkTarget: '_blank' })}
+                                        className="text-blue-600"
+                                    />
+                                    <span className="text-sm text-gray-700">New window</span>
+                                </label>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">Leave empty to disable link</p>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -204,8 +260,8 @@ export default function UserFriendlyStylingPanel({
                                 key={level}
                                 onClick={() => updateLevel(level)}
                                 className={`px-3 py-2 rounded-lg font-medium transition-colors ${(element.level || 1) === level
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 H{level}
@@ -223,8 +279,8 @@ export default function UserFriendlyStylingPanel({
                             <button
                                 onClick={() => updateListStyle('unordered')}
                                 className={`px-3 py-2 rounded-lg font-medium transition-colors ${(element.listStyle || 'unordered') === 'unordered'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 • Bullets
@@ -232,8 +288,8 @@ export default function UserFriendlyStylingPanel({
                             <button
                                 onClick={() => updateListStyle('ordered')}
                                 className={`px-3 py-2 rounded-lg font-medium transition-colors ${element.listStyle === 'ordered'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 1. Numbers
@@ -241,8 +297,8 @@ export default function UserFriendlyStylingPanel({
                             <button
                                 onClick={() => updateListStyle('nested')}
                                 className={`px-3 py-2 rounded-lg font-medium transition-colors ${element.listStyle === 'nested'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 ↳ Nested
@@ -282,8 +338,8 @@ export default function UserFriendlyStylingPanel({
                                     key={style.value}
                                     onClick={() => updateImageStyle(style.value as any)}
                                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${(element.imageStyle || 'default') === style.value
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
                                     {style.label}
@@ -300,8 +356,8 @@ export default function UserFriendlyStylingPanel({
                                         key={width}
                                         onClick={() => updateStyle('width', width)}
                                         className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.width === width
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {width}
@@ -326,8 +382,8 @@ export default function UserFriendlyStylingPanel({
                                         key={height}
                                         onClick={() => updateStyle('height', height)}
                                         className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.height === height
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {height}
@@ -372,8 +428,8 @@ export default function UserFriendlyStylingPanel({
                                         key={preset.value}
                                         onClick={() => updateStyle('fontSize', preset.value)}
                                         className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.fontSize === preset.value
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {preset.label}
@@ -405,8 +461,8 @@ export default function UserFriendlyStylingPanel({
                                             key={weight}
                                             onClick={() => updateStyle('fontWeight', value)}
                                             className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.fontWeight === value
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {weight}
@@ -424,8 +480,8 @@ export default function UserFriendlyStylingPanel({
                                         key={align}
                                         onClick={() => updateStyle('textAlign', align)}
                                         className={`px-2 py-1.5 rounded text-xs font-medium transition-colors capitalize ${element.styles?.textAlign === align
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {align}
@@ -556,8 +612,8 @@ export default function UserFriendlyStylingPanel({
                                     key={preset.value}
                                     onClick={() => updateStyle('padding', preset.value)}
                                     className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.padding === preset.value
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
                                     {preset.label}
@@ -573,8 +629,8 @@ export default function UserFriendlyStylingPanel({
                                     key={preset.value}
                                     onClick={() => updateStyle('margin', preset.value)}
                                     className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.margin === preset.value
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
                                     {preset.label}
@@ -598,8 +654,8 @@ export default function UserFriendlyStylingPanel({
                                         key={gap}
                                         onClick={() => onUpdate({ columnGap: gap })}
                                         className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.columnGap === gap
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {gap}
@@ -627,8 +683,8 @@ export default function UserFriendlyStylingPanel({
                                         key={align.value}
                                         onClick={() => onUpdate({ columnAlign: align.value as any })}
                                         className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${(element.columnAlign || 'stretch') === align.value
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {align.label}
@@ -692,8 +748,8 @@ export default function UserFriendlyStylingPanel({
                                                         onUpdate({ columnPadding: newPadding });
                                                     }}
                                                     className={`px-1 py-1 rounded text-xs font-medium transition-colors ${(element.columnPadding?.[colIdx] || '8px') === pad
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                         }`}
                                                 >
                                                     {pad}
@@ -721,8 +777,8 @@ export default function UserFriendlyStylingPanel({
                                         key={preset.value}
                                         onClick={() => updateStyle('borderRadius', preset.value)}
                                         className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.borderRadius === preset.value
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {preset.label}
@@ -823,8 +879,8 @@ export default function UserFriendlyStylingPanel({
                                                 key={width}
                                                 onClick={() => updateStyle('width', width)}
                                                 className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${element.styles?.width === width
-                                                        ? 'bg-blue-600 text-white'
-                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                     }`}
                                             >
                                                 {width}
