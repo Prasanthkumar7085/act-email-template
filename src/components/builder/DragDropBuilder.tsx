@@ -4,25 +4,27 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 import ElementsPalette from './ElementsPalette';
 import DragDropCanvas from './DragDropCanvas';
 import UserFriendlyStylingPanel from './UserFriendlyStylingPanel';
+import { BookTemplate, Box } from 'lucide-react';
+import { PREDEFINED_TEMPLATES } from '@/data/predefinedDragAndDropTemplates';
 
 export interface EmailElement {
     id: string;
     type: 'heading' | 'paragraph' | 'list' | 'div' | 'columns' | 'button' | 'image' | 'spacer' | 'divider';
     content?: string;
-    level?: number; // for headings (1-6)
-    items?: string[]; // for lists
-    listStyle?: 'unordered' | 'ordered' | 'nested'; // for lists
-    nestedItems?: { items: string[]; level: number }[]; // for nested lists
-    columns?: EmailElement[][]; // for column layouts
-    children?: EmailElement[]; // for divs
-    imageStyle?: 'default' | 'rounded' | 'circle' | 'avatar'; // for images
-    columnGap?: string; // gap between columns
-    columnAlign?: 'stretch' | 'start' | 'center' | 'end'; // vertical alignment of columns
-    columnColors?: string[]; // background colors for each column
-    columnPadding?: string[]; // padding for each column
-    url?: string; // for buttons - link URL
-    linkUrl?: string; // for headings, paragraphs - link URL
-    linkTarget?: '_blank' | '_self'; // link target (default _blank for buttons, _self for text)
+    level?: number;
+    items?: string[];
+    listStyle?: 'unordered' | 'ordered' | 'nested';
+    nestedItems?: { items: string[]; level: number }[];
+    columns?: EmailElement[][];
+    children?: EmailElement[];
+    imageStyle?: 'default' | 'rounded' | 'circle' | 'avatar';
+    columnGap?: string;
+    columnAlign?: 'stretch' | 'start' | 'center' | 'end';
+    columnColors?: string[];
+    columnPadding?: string[];
+    url?: string;
+    linkUrl?: string;
+    linkTarget?: '_blank' | '_self';
     styles?: {
         backgroundColor?: string;
         backgroundImage?: string;
@@ -65,6 +67,8 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
     const [activeId, setActiveId] = useState<string | null>(null);
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
     const [isDraggingFromPalette, setIsDraggingFromPalette] = useState(false);
+    const [leftPanelTab, setLeftPanelTab] = useState<'elements' | 'templates'>('elements');
+
     const layout = pageLayouts?.[0] || {
         width: 900,
         maxWidth: 900,
@@ -73,7 +77,6 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
         padding: { top: 40, right: 40, bottom: 40, left: 40 },
         height: 800,
     };
-    console.log(elements, "fkdsafkasjdkjfdksj")
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -257,6 +260,32 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
         }
     };
 
+    const applyTemplate = (templateId: string) => {
+        const template = PREDEFINED_TEMPLATES.find(t => t.id === templateId);
+        if (template && template.elements) {
+            // Generate new IDs for all elements to avoid conflicts
+            const elementsWithNewIds = template.elements.map((element: any) => ({
+                ...element,
+                id: `${element.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                children: element.children ? element.children.map((child: any) => ({
+                    ...child,
+                    id: `${child.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                })) : undefined,
+                columns: element.columns ? element.columns.map((column: any) =>
+                    column.map((colElement: any) => ({
+                        ...colElement,
+                        id: `${colElement.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                    }))
+                ) : undefined
+            }));
+
+            onElementsChange(elementsWithNewIds);
+            if (elementsWithNewIds.length > 0) {
+                setSelectedElementId(elementsWithNewIds[0].id);
+            }
+        }
+    };
+
     const updateElement = (id: string, updates: Partial<EmailElement>) => {
         const updateNested = (els: EmailElement[]): EmailElement[] => {
             return els.map(el => {
@@ -437,14 +466,82 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
             onDragEnd={handleDragEnd}
         >
             <div className="flex-1 flex overflow-hidden">
-                {/* Left Side - Elements Palette */}
+                {/* Left Side - Elements & Templates Panel */}
                 <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
                     <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                        <h3 className="font-semibold text-gray-900 mb-2">Elements</h3>
-                        <p className="text-sm text-gray-500">Drag elements to canvas</p>
+                        <h3 className="font-semibold text-gray-900 mb-2">Add Content</h3>
+                        <p className="text-sm text-gray-500">Drag elements or apply templates</p>
+
+                        {/* Tabs */}
+                        <div className="flex space-x-1 mt-4">
+                            <button
+                                onClick={() => setLeftPanelTab('elements')}
+                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === 'elements'
+                                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <Box className="w-4 h-4" />
+                                    <span>Elements</span>
+                                </div>
+                            </button>
+                            <button
+                                onClick={() => setLeftPanelTab('templates')}
+                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === 'templates'
+                                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <BookTemplate className="w-4 h-4" />
+                                    <span>Templates</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
+
                     <div className="flex-1 overflow-y-auto p-4">
-                        <ElementsPalette />
+                        {leftPanelTab === 'elements' ? (
+                            <ElementsPalette />
+                        ) : (
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-gray-900">Email Templates</h4>
+                                <p className="text-sm text-gray-500 mb-4">Apply a pre-built template to start quickly</p>
+
+                                <div className="space-y-3">
+                                    {PREDEFINED_TEMPLATES.map((template) => (
+                                        <div
+                                            key={template.id}
+                                            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer"
+                                            onClick={() => applyTemplate(template.id)}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                                    <span className="text-lg">{template.icon}</span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <h5 className="font-medium text-gray-900">{template.name}</h5>
+                                                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                                            {template.elements.length} blocks
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 mt-1">{template.description}</p>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            applyTemplate(template.id);
+                                                        }}
+                                                        className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                                    >
+                                                        Apply Template →
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -455,6 +552,16 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
                             <div>
                                 <h2 className="text-lg font-semibold text-gray-900">Drag & Drop Builder</h2>
                                 <p className="text-sm text-gray-500">Build your email template</p>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                                <div className="text-sm text-gray-500">
+                                    <span className="font-medium">{elements.length}</span> elements
+                                </div>
+                                {leftPanelTab === 'templates' && (
+                                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                        Template Mode
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -560,4 +667,3 @@ export default function DragDropBuilder({ elements, onElementsChange, pageLayout
         </DndContext>
     );
 }
-
