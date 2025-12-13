@@ -1,17 +1,21 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { EmailElement } from './DragDropBuilder';
 import ColumnsElement from './ColumnsElement';
+import ContainerElement from './ContainerElement';
 import ElementControls from './ElementControls';
 
 interface NestedElementProps {
     element: EmailElement;
     isSelected: boolean;
+    selectedElementId?: string | null;
     onSelect: (e?: React.MouseEvent) => void;
     onUpdate: (updates: Partial<EmailElement>) => void;
     onDelete: () => void;
     onAddElement: (element: EmailElement) => void;
+    onSelectElement?: (id: string | null) => void;
     parentPath: string;
     onMoveUp?: () => void;
     onMoveDown?: () => void;
@@ -22,10 +26,12 @@ interface NestedElementProps {
 export default function NestedElement({
     element,
     isSelected,
+    selectedElementId,
     onSelect,
     onUpdate,
     onDelete,
     onAddElement,
+    onSelectElement,
     parentPath,
     onMoveUp,
     onMoveDown,
@@ -129,6 +135,88 @@ export default function NestedElement({
                 return <div style={elementStyle} onClick={(e) => { e.stopPropagation(); onSelect(e); }} />;
             case 'divider':
                 return <hr style={elementStyle} onClick={(e) => { e.stopPropagation(); onSelect(e); }} />;
+            case 'div':
+                // Render div with children using ContainerElement
+                return (
+                    <ContainerElement
+                        element={element}
+                        isSelected={isSelected}
+                        selectedElementId={selectedElementId || null}
+                        onSelect={onSelect}
+                        onUpdate={onUpdate}
+                        onDelete={onDelete}
+                        onSelectElement={onSelectElement || ((id) => {
+                            if (id === null) {
+                                onSelect();
+                            }
+                        })}
+                        onUpdateElement={(id, updates) => {
+                            if (element.children) {
+                                const newChildren = element.children.map(c => c.id === id ? { ...c, ...updates } : c);
+                                onUpdate({ children: newChildren });
+                            }
+                        }}
+                        onDeleteElement={(id) => {
+                            if (element.children) {
+                                const newChildren = element.children.filter(c => c.id !== id);
+                                onUpdate({ children: newChildren });
+                            }
+                        }}
+                        onAddElement={onAddElement}
+                        onAddElementToColumn={(colIdx, newEl) => {
+                            // Handle columns inside divs
+                            if (element.children) {
+                                const columnsChild = element.children.find(c => c.type === 'columns' && c.id);
+                                if (columnsChild && columnsChild.columns) {
+                                    const newColumns = [...columnsChild.columns];
+                                    newColumns[colIdx] = [...newColumns[colIdx], newEl];
+                                    const newChildren = element.children.map(c =>
+                                        c.id === columnsChild.id ? { ...c, columns: newColumns } : c
+                                    );
+                                    onUpdate({ children: newChildren });
+                                }
+                            }
+                        }}
+                        onMoveUp={onMoveUp}
+                        onMoveDown={onMoveDown}
+                        canMoveUp={canMoveUp}
+                        canMoveDown={canMoveDown}
+                    />
+                );
+            case 'columns':
+                // Render columns using ColumnsElement
+                return (
+                    <ColumnsElement
+                        element={element}
+                        isSelected={isSelected}
+                        selectedElementId={selectedElementId || null}
+                        onSelect={onSelect}
+                        onUpdate={onUpdate}
+                        onDelete={onDelete}
+                        onSelectElement={onSelectElement || ((id) => {
+                            if (id === null) {
+                                onSelect();
+                            }
+                        })}
+                        onUpdateElement={(id, updates) => {
+                            // This will be handled inside ColumnsElement
+                        }}
+                        onDeleteElement={(id) => {
+                            // This will be handled inside ColumnsElement
+                        }}
+                        onAddElementToColumn={(colIdx, newEl) => {
+                            if (element.columns) {
+                                const newColumns = [...element.columns];
+                                newColumns[colIdx] = [...newColumns[colIdx], newEl];
+                                onUpdate({ columns: newColumns });
+                            }
+                        }}
+                        onMoveUp={onMoveUp}
+                        onMoveDown={onMoveDown}
+                        canMoveUp={canMoveUp}
+                        canMoveDown={canMoveDown}
+                    />
+                );
             default:
                 return (
                     <div style={elementStyle} onClick={(e) => { e.stopPropagation(); onSelect(e); }}>

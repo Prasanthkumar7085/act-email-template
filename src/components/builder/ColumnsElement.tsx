@@ -91,6 +91,7 @@ function ColumnDropZone({
                                     key={colElement.id}
                                     element={colElement}
                                     isSelected={selectedElementId === colElement.id}
+                                    selectedElementId={selectedElementId}
                                     onSelect={(e) => {
                                         e?.stopPropagation();
                                         onSelectElement(colElement.id);
@@ -101,6 +102,7 @@ function ColumnDropZone({
                                     }}
                                     onDelete={() => onDeleteElement(colElement.id)}
                                     onAddElement={onAddElement}
+                                    onSelectElement={onSelectElement}
                                     parentPath={`${elementId}.col${columnIndex}`}
                                     onMoveUp={() => {
                                         if (colElIndex > 0 && onMoveElementInColumn) {
