@@ -89,7 +89,7 @@ class CustomColumnsTool {
   }
 
   render(): HTMLElement {
-    this.wrapper = document.createElement("div");
+    this.wrapper = document.createElement("table");
     this.wrapper.classList.add("custom-columns-tool");
     this._applyStyles();
 
@@ -101,44 +101,127 @@ class CustomColumnsTool {
     // Create column layout
     this._renderColumns();
 
+    // Inject responsive styles
+    this._injectResponsiveStyles();
+
     return this.wrapper;
+  }
+
+  private _injectResponsiveStyles(): void {
+    const styleId = "custom-layout-tool-styles";
+    const existingStyle = document.getElementById(styleId);
+
+    // Always update style content to ensure latest version
+    const style = existingStyle || document.createElement("style");
+    if (!existingStyle) {
+      style.id = styleId;
+      document.head.appendChild(style);
+    }
+
+    style.textContent = `
+      /* Mobile view (media query OR explicit class from builder) */
+      @media only screen and (max-width: 768px) {
+        ${this._getMobileStyles()}
+      }
+
+      /* Explicit mobile view override */
+      .mobile-view-active .custom-columns-tool,
+      .mobile-view-active .custom-columns-tool tbody,
+      .mobile-view-active .custom-columns-tool tr,
+      .mobile-view-active .custom-columns-tool td,
+      .mobile-view-active .custom-columns-tool .custom-column {
+          display: block !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+      }
+      
+      .mobile-view-active .custom-columns-tool {
+           table-layout: auto !important;
+           height: auto !important;
+      }
+
+      .mobile-view-active .custom-columns-tool td.custom-column {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          margin-bottom: 16px !important;
+          border-left: none !important;
+          border-right: none !important;
+      }
+        
+      .mobile-view-active .custom-columns-tool td.custom-column:last-child {
+          margin-bottom: 0 !important;
+      }
+    `;
+  }
+
+  private _getMobileStyles(): string {
+    return `
+        .custom-columns-tool,
+        .custom-columns-tool tbody,
+        .custom-columns-tool tr,
+        .custom-columns-tool td,
+        .custom-columns-tool .custom-column {
+          display: block !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* Reset table specific properties */
+        .custom-columns-tool {
+           table-layout: auto !important;
+           height: auto !important;
+        }
+
+        .custom-columns-tool td.custom-column {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          margin-bottom: 16px !important;
+          border-left: none !important;
+          border-right: none !important;
+        }
+        
+        .custom-columns-tool td.custom-column:last-child {
+          margin-bottom: 0 !important;
+        }
+    `;
   }
 
   private _applyStyles(): void {
     if (!this.wrapper) return;
 
     this.wrapper.style.cssText = `
-      display: flex;
-      gap: ${this.data.layout.gap}px;
       width: 100%;
-      max-width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
       box-sizing: border-box;
       margin: 10px 0;
       position: relative;
       background: ${this.data.layout.backgroundColor};
-      padding: 8px;
       border-radius: ${this.data.layout.borderRadius}px;
       ${this.data.layout.customCSS}
     `;
+
+    // Note: 'gap' is handled via padding in _renderColumns, not here on the wrapper.
+    // 'padding' on the wrapper (layout.padding) can be applied if needed, but table padding is tricky.
+    // We will rely on the structure for spacing.
   }
 
   private _renderColumns(): void {
     if (!this.wrapper) return;
 
-    // Clear existing columns
-    this.columnWrappers.forEach((col) => {
-      if (col && col.parentNode) {
-        col.remove();
-      }
-    });
-    this.columnWrappers = [];
+    // Clear existing columns (tbody/tr)
+    this.wrapper.innerHTML = "";
 
     // Safely destroy existing editors
     for (let i = 0; i < this.editors.length; i++) {
       const editor = this.editors[i];
       if (editor && editor.destroy) {
         try {
-          const destroyPromise = editor.destroy();
+          const destroyPromise: any = editor.destroy();
           if (destroyPromise && typeof destroyPromise.catch === "function") {
             destroyPromise.catch((err: any) => {
               console.error(`Error destroying editor ${i}:`, err);
@@ -156,44 +239,80 @@ class CustomColumnsTool {
       this.data.cols.push({ blocks: [] });
     }
 
+    const tbody = document.createElement("tbody");
+    const tr = document.createElement("tr");
+
     // Create columns
+    const gap = this.data.layout.gap;
+
     for (let i = 0; i < this.data.numberOfColumns; i++) {
-      const columnWrapper = document.createElement("div");
-      columnWrapper.classList.add("custom-column");
-      columnWrapper.style.cssText = `
-        flex: 1 1 0;
-        min-width: 0;
-        max-width: 100%;
-        box-sizing: border-box;
-        border: 1px solid ${this.data.layout.borderColor};
-        border-radius: ${this.data.layout.borderRadius}px;
-        padding: ${this.data.layout.padding}px;
-        background: ${this.data.layout.columnBackgroundColor};
-        min-height: 100px;
-        transition: all 0.3s ease;
-        overflow: hidden;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-      `;
+      const td = document.createElement("td");
+      td.classList.add("custom-column");
+
+      // Calculate gap padding
+      let paddingLeft = 0;
+      let paddingRight = 0;
+
+      if (i === 0) {
+        // First column: padding right = gap/2
+        paddingRight = gap / 2;
+      } else if (i === this.data.numberOfColumns - 1) {
+        // Last column: padding left = gap/2
+        paddingLeft = gap / 2;
+      } else {
+        // Middle columns: padding left and right = gap/2
+        paddingLeft = gap / 2;
+        paddingRight = gap / 2;
+      }
+
+      // Apply TD styles (layout structure)
+      td.style.cssText = `
+            width: ${100 / this.data.numberOfColumns}%;
+            vertical-align: top;
+            box-sizing: border-box;
+            padding-left: ${paddingLeft}px;
+            padding-right: ${paddingRight}px;
+            padding-top: 0;
+            padding-bottom: 0;
+        `;
+
+      // Create inner content wrapper for styling (background, border, padding)
+      const innerContent = document.createElement("div");
+      innerContent.style.cssText = `
+            display: block;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            border: 1px solid ${this.data.layout.borderColor};
+            border-radius: ${this.data.layout.borderRadius}px;
+            padding: ${this.data.layout.padding}px;
+            background: ${this.data.layout.columnBackgroundColor};
+            min-height: 100px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        `;
 
       const editorHolder = document.createElement("div");
       editorHolder.id = `column-editor-${Date.now()}-${i}`;
       editorHolder.style.cssText = `
-        background: white;
-        border-radius: 4px;
-        padding: 6px;
-        min-height: 80px;
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-      `;
+            background: white;
+            border-radius: 4px;
+            padding: 6px;
+            min-height: 80px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        `;
 
-      columnWrapper.appendChild(editorHolder);
-      this.wrapper!.appendChild(columnWrapper);
-      this.columnWrappers.push(columnWrapper);
+      innerContent.appendChild(editorHolder);
+      td.appendChild(innerContent);
+      tr.appendChild(td);
+      this.columnWrappers.push(innerContent); // Keep track of inner content for style updates
 
       // Initialize editor for this column
       setTimeout(
@@ -203,6 +322,9 @@ class CustomColumnsTool {
         100 * (i + 1)
       );
     }
+
+    tbody.appendChild(tr);
+    this.wrapper.appendChild(tbody);
   }
 
   private _initializeColumnEditor(holderId: string, columnIndex: number): void {
@@ -287,11 +409,20 @@ class CustomColumnsTool {
     this._renderColumns();
   }
 
+  // Method to update styles when settings change
   private _updateLayoutStyle(property: string, value: any): void {
     (this.data.layout as any)[property] = value;
+
+    // Re-render columns to apply gap changes (as they affect TD padding)
+    if (property === "gap") {
+      this._applyStyles();
+      this._renderColumns();
+      return;
+    }
+
     this._applyStyles();
 
-    // Update individual columns
+    // Update individual columns (inner content divs)
     this.columnWrappers.forEach((column) => {
       if (property === "borderColor") {
         column.style.borderColor = value;

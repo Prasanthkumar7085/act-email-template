@@ -237,7 +237,6 @@ const processTableRow = (
 ): string => {
   const tag = isHeader ? "th" : "td";
 
-  // Get row-specific styles
   const rowStyle = rowStyles[rowIndex] || {};
   const rowStyleAttr = styleObjectToString({
     "background-color": isHeader ? "#f8fafc" : undefined,
@@ -617,10 +616,12 @@ const convertColumns = (block: EditorJSBlock): string => {
   // Get block-level alignment and indent
   const blockStyleObj = getStyleObject(block);
 
-  // Merge with layout settings - ensure background color is properly set
+  // Layout styles for the TABLE container
   const layoutStyles: Record<string, string> = {
-    display: "flex",
-    gap: `${layout.gap || 20}px`,
+    width: "100%",
+    "table-layout": "fixed",
+    "border-collapse": "collapse",
+    "box-sizing": "border-box",
     margin: "20px 0",
     ...blockStyleObj,
   };
@@ -630,81 +631,99 @@ const convertColumns = (block: EditorJSBlock): string => {
     layoutStyles.background = layout.backgroundColor;
   }
 
-  // Apply other layout styles
+  // Apply border radius (works on table in some clients, or wrapper div)
   if (layout.borderRadius && layout.borderRadius > 0) {
-    layoutStyles.borderRadius = `${layout.borderRadius}px`;
+    layoutStyles["border-radius"] = `${layout.borderRadius}px`;
   }
 
-  if (layout.padding && layout.padding > 0) {
-    layoutStyles.padding = `${layout.padding}px`;
-  }
-
-  // Add border if borderColor is specified
-  if (layout.borderColor && layout.borderColor !== "transparent") {
-    layoutStyles.border = `1px solid ${layout.borderColor}`;
-  }
-
-  // Add custom CSS if provided - this should override other styles
+  // Custom CSS (override)
   if (layout.customCSS) {
-    // Parse custom CSS and merge with existing styles
     const customStyles = layout.customCSS
       .split(";")
-      .reduce((acc: Record<string, string>, style) => {
-        const [key, value] = style.split(":").map((s) => s.trim());
+      .reduce((acc: Record<string, string>, style: string) => {
+        const [key, value] = style.split(":").map((s: string) => s.trim());
         if (key && value) {
-          // Convert kebab-case to camelCase for consistency
-          const camelCaseKey = key.replace(/-([a-z])/g, (g) =>
+          const camelCaseKey = key.replace(/-([a-z])/g, (g: string) =>
             g[1].toUpperCase()
           );
           acc[camelCaseKey] = value;
         }
         return acc;
       }, {});
-
     Object.assign(layoutStyles, customStyles);
   }
 
   const containerStyle = styleObjectToString(layoutStyles);
 
-  let html = `<div${containerStyle}>`;
+  // Use class "custom-columns-tool" for responsive media query targeting
+  let html = `<table class="custom-columns-tool"${containerStyle} border="0" cellpadding="0" cellspacing="0" width="100%">`;
+
+  // Single row
+  html += `<tbody><tr>`;
+
+  const gap = layout.gap || 20;
 
   // Process each column
   for (let i = 0; i < numberOfColumns; i++) {
     const columnData = cols[i];
     const columnBlocks = columnData?.blocks || [];
 
-    // Column styles
-    const columnStyles: Record<string, string> = {
-      flex: "1",
-      minHeight: "50px",
+    // Calculate gap padding for TD
+    let paddingLeft = 0;
+    let paddingRight = 0;
+
+    // Simulate gap using padding
+    if (i === 0) {
+      paddingRight = gap / 2;
+    } else if (i === numberOfColumns - 1) {
+      paddingLeft = gap / 2;
+    } else {
+      paddingLeft = gap / 2;
+      paddingRight = gap / 2;
+    }
+
+    // TD Styles
+    const tdStyles: Record<string, string> = {
+      width: `${100 / numberOfColumns}%`,
+      "vertical-align": "top",
+      "box-sizing": "border-box",
+      "padding-left": `${paddingLeft}px`,
+      "padding-right": `${paddingRight}px`,
+      "padding-top": "0",
+      "padding-bottom": "0",
     };
 
-    // Apply column background color if specified
+    const tdStyleStr = styleObjectToString(tdStyles);
+
+    // Inner DIV Styles (actual column box)
+    const innerStyles: Record<string, string> = {
+      display: "block",
+      width: "100%",
+      "box-sizing": "border-box",
+      "min-height": "50px",
+    };
+
     if (
       layout.columnBackgroundColor &&
       layout.columnBackgroundColor !== "transparent"
     ) {
-      columnStyles.background = layout.columnBackgroundColor;
+      innerStyles.background = layout.columnBackgroundColor;
     }
-
-    // Apply column border radius
     if (layout.borderRadius && layout.borderRadius > 0) {
-      columnStyles.borderRadius = `${layout.borderRadius}px`;
+      innerStyles["border-radius"] = `${layout.borderRadius}px`;
     }
-
-    // Apply column padding
     if (layout.padding && layout.padding > 0) {
-      columnStyles.padding = `${layout.padding}px`;
+      innerStyles.padding = `${layout.padding}px`;
     }
-
-    // Add column border if specified
     if (layout.borderColor && layout.borderColor !== "transparent") {
-      columnStyles.border = `1px solid ${layout.borderColor}`;
+      innerStyles.border = `1px solid ${layout.borderColor}`;
     }
 
-    const columnStyleStr = styleObjectToString(columnStyles);
+    const innerStyleStr = styleObjectToString(innerStyles);
 
-    html += `<div${columnStyleStr}>`;
+    // Use class "custom-column" for responsive media query targeting
+    html += `<td class="custom-column"${tdStyleStr} valign="top">`;
+    html += `<div${innerStyleStr}>`;
 
     // Convert blocks inside column
     columnBlocks.forEach((colBlock: EditorJSBlock) => {
@@ -718,10 +737,10 @@ const convertColumns = (block: EditorJSBlock): string => {
       }
     });
 
-    html += `</div>`;
+    html += `</div></td>`;
   }
 
-  html += `</div>`;
+  html += `</tr></tbody></table>`;
   return html;
 };
 

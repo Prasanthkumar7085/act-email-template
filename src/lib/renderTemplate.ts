@@ -68,9 +68,52 @@ export async function buildEmailFromEditor(
     .join("\n");
 
   // Wrap content in email-compatible structure with inline styles only
-  return `<!doctype html>
+  // NOTE: We also inject a style block for responsiveness (stacking columns on mobile)
+  // Most modern email clients support this (Gmail App, iOS Mail, etc.)
 
+  const responsiveStyles = `
+    <style>
+      @media only screen and (max-width: 600px) {
+        .custom-columns-tool,
+        .custom-columns-tool tbody,
+        .custom-columns-tool tr,
+        .custom-columns-tool td,
+        .custom-columns-tool .custom-column {
+          display: block !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* Reset table specific properties */
+        .custom-columns-tool {
+           table-layout: auto !important;
+           height: auto !important;
+        }
+
+        .custom-columns-tool td.custom-column {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          margin-bottom: 16px !important;
+          border-left: none !important;
+          border-right: none !important;
+        }
+        
+        .custom-columns-tool td.custom-column:last-child {
+          margin-bottom: 0 !important;
+        }
+      }
+    </style>
+  `;
+
+  return `<!doctype html>
 <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    ${responsiveStyles}
+  </head>
   <body>
     <div
       style='background-color:#FFFFFF;color:#03124A;font-family:Avenir, "Avenir Next LT Pro", Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;font-size:16px;font-weight:400;letter-spacing:0.15008px;line-height:1.5;margin:0;padding:32px 0;min-height:100%;width:100%'

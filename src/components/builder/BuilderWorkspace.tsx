@@ -80,7 +80,7 @@ export default function BuilderWorkspace({
                 <div className="flex-1 overflow-auto p-6">
                     <div className="flex items-center justify-center min-h-full">
                         <div
-                            className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${activeView === 'mobile' ? 'scale-90' : 'scale-100'
+                            className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${activeView === 'mobile' ? 'scale-90 mobile-view-active' : 'scale-100'
                                 }`}
                             style={{
                                 width: activeView === 'mobile' ? '420px' : `${page.width || 900}px`,
