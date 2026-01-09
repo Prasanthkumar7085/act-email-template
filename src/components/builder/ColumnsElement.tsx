@@ -197,17 +197,7 @@ export default function ColumnsElement({
     minHeight: "60px",
   };
 
-  const handleAddColumn = () => {
-    const newColumns = [...(element.columns || []), []];
-    onUpdate({ columns: newColumns });
-  };
 
-  const handleRemoveColumn = () => {
-    if (element.columns && element.columns.length > 1) {
-      const newColumns = element.columns.slice(0, -1);
-      onUpdate({ columns: newColumns });
-    }
-  };
 
   return (
     <div ref={setNodeRef} style={style} className="relative group">
@@ -220,7 +210,8 @@ export default function ColumnsElement({
 
             if (
               target === e.currentTarget ||
-              target.classList.contains("columns-container")
+              target.classList.contains("columns-container") ||
+              target.closest(".custom-columns-tool")
             ) {
               e.stopPropagation();
               onSelect();
@@ -228,118 +219,143 @@ export default function ColumnsElement({
           }}
           className={`relative columns-container ${columnsIsOver ? "bg-blue-50 border-2 border-blue-400 border-dashed" : ""}`}
         >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${element.columns?.length || 2}, 1fr)`,
-              gap: element.columnGap || "16px",
-              alignItems: element.columnAlign || "stretch",
-            }}
-            onClick={(e) => {
-              // Select columns when clicking on the grid container
-              if (e.target === e.currentTarget) {
-                e.stopPropagation();
-                onSelect();
+          <style>
+            {`
+              /* Responsive styles for editor preview */
+              .mobile-view-active .custom-columns-tool,
+              .mobile-view-active .custom-columns-tool tbody,
+              .mobile-view-active .custom-columns-tool tr,
+              .mobile-view-active .custom-columns-tool td {
+                display: block !important;
+                width: 100% !important;
               }
+
+              .mobile-view-active .custom-columns-tool td {
+                box-sizing: border-box !important;
+                padding-right: 0 !important;
+                /* Use margin-bottom for gap in stack mode, except last one */
+                margin-bottom: ${element.columnGap || "16px"} !important;
+              }
+
+              .mobile-view-active .custom-columns-tool td:last-child {
+                margin-bottom: 0 !important;
+              }
+            `}
+          </style>
+          <table
+            className="custom-columns-tool"
+            cellPadding="0"
+            cellSpacing="0"
+            style={{
+              width: "100%",
+              tableLayout: "fixed",
+              borderCollapse: "collapse",
+              borderSpacing: 0,
             }}
           >
-            {element.columns?.map((column, colIdx) => {
-              const columnColor = element.columnColors?.[colIdx];
-              const columnPadding = element.columnPadding?.[colIdx] || "8px";
-              return (
-                <ColumnDropZone
-                  key={colIdx}
-                  column={column}
-                  columnIndex={colIdx}
-                  elementId={element.id}
-                  selectedElementId={selectedElementId}
-                  onSelectElement={(id) => {
-                    // If clicking on column zone itself, select columns element
-                    if (!id) {
-                      onSelect();
-                    } else {
-                      onSelectElement(id);
-                    }
-                  }}
-                  onUpdateElement={(id, updates) => {
-                    const newColumns = [...(element.columns || [])];
-                    newColumns[colIdx] = newColumns[colIdx].map((c) =>
-                      c.id === id ? { ...c, ...updates } : c
-                    );
-                    onUpdate({ columns: newColumns });
-                  }}
-                  onDeleteElement={(id) => {
-                    const newColumns = [...(element.columns || [])];
-                    newColumns[colIdx] = newColumns[colIdx].filter(
-                      (c) => c.id !== id
-                    );
-                    onUpdate({ columns: newColumns });
-                  }}
-                  onAddElement={(newEl) => {
-                    const newColumns = [...(element.columns || [])];
-                    newColumns[colIdx] = [...newColumns[colIdx], newEl];
-                    onUpdate({ columns: newColumns });
-                  }}
-                  columnColor={columnColor}
-                  columnPadding={columnPadding}
-                  onSelectColumns={() => onSelect()}
-                  columnsSelected={isSelected}
-                  onMoveElementInColumn={(elementId, direction) => {
-                    const newColumns = [...(element.columns || [])];
-                    const col = newColumns[colIdx];
-                    const elementIndex = col.findIndex(
-                      (el) => el.id === elementId
-                    );
-                    if (elementIndex >= 0) {
-                      if (direction === "up" && elementIndex > 0) {
-                        const temp = col[elementIndex];
-                        col[elementIndex] = col[elementIndex - 1];
-                        col[elementIndex - 1] = temp;
-                        newColumns[colIdx] = [...col];
-                        onUpdate({ columns: newColumns });
-                      } else if (
-                        direction === "down" &&
-                        elementIndex < col.length - 1
-                      ) {
-                        const temp = col[elementIndex];
-                        col[elementIndex] = col[elementIndex + 1];
-                        col[elementIndex + 1] = temp;
-                        newColumns[colIdx] = [...col];
-                        onUpdate({ columns: newColumns });
-                      }
-                    }
-                  }}
-                />
-              );
-            })}
-          </div>
-          {isSelected && (
-            <div className="absolute top-2 right-2 flex items-center space-x-2 z-10">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddColumn();
-                }}
-                className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700"
-                title="Add column"
-              >
-                + Column
-              </button>
-              {element.columns && element.columns.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveColumn();
-                  }}
-                  className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
-                  title="Remove column"
-                >
-                  - Column
-                </button>
-              )}
-            </div>
-          )}
+            <tbody>
+              <tr>
+                {element.columns?.map((column, colIdx) => {
+                  const columnColor = element.columnColors?.[colIdx];
+                  const columnPadding =
+                    element.columnPadding?.[colIdx] || "8px";
+                  const numColumns = element.columns?.length || 1;
+                  const isLast = colIdx === numColumns - 1;
+                  const gap = element.columnGap || "16px";
+
+                  // Calculate width percentage
+                  const widthPercent = 100 / numColumns;
+
+                  return (
+                    <td
+                      key={colIdx}
+                      className="custom-column"
+                      style={{
+                        width: `${widthPercent}%`,
+                        verticalAlign:
+                          element.columnAlign === "center"
+                            ? "middle"
+                            : element.columnAlign === "end"
+                              ? "bottom"
+                              : "top",
+                        paddingRight: isLast ? 0 : gap,
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <ColumnDropZone
+                        column={column}
+                        columnIndex={colIdx}
+                        elementId={element.id}
+                        selectedElementId={selectedElementId}
+                        onSelectElement={(id) => {
+                          if (!id) {
+                            onSelect();
+                          } else {
+                            onSelectElement(id);
+                          }
+                        }}
+                        onUpdateElement={(id, updates) => {
+                          const newColumns = [...(element.columns || [])];
+                          newColumns[colIdx] = newColumns[colIdx].map((c) =>
+                            c.id === id ? { ...c, ...updates } : c
+                          );
+                          onUpdate({ columns: newColumns });
+                        }}
+                        onDeleteElement={(id) => {
+                          const newColumns = [...(element.columns || [])];
+                          newColumns[colIdx] = newColumns[colIdx].filter(
+                            (c) => c.id !== id
+                          );
+                          onUpdate({ columns: newColumns });
+                        }}
+                        onAddElement={(newEl) => {
+                          const newColumns = [...(element.columns || [])];
+                          newColumns[colIdx] = [
+                            ...newColumns[colIdx],
+                            newEl,
+                          ];
+                          onUpdate({ columns: newColumns });
+                        }}
+                        columnColor={columnColor}
+                        columnPadding={columnPadding}
+                        onSelectColumns={() => onSelect()}
+                        columnsSelected={isSelected}
+                        onMoveElementInColumn={(elementId, direction) => {
+                          const newColumns = [...(element.columns || [])];
+                          const col = newColumns[colIdx];
+                          const elementIndex = col.findIndex(
+                            (el) => el.id === elementId
+                          );
+                          if (elementIndex >= 0) {
+                            if (direction === "up" && elementIndex > 0) {
+                              const temp = col[elementIndex];
+                              col[elementIndex] = col[elementIndex - 1];
+                              col[elementIndex - 1] = temp;
+                              newColumns[colIdx] = [...col];
+                              onUpdate({ columns: newColumns });
+                            } else if (
+                              direction === "down" &&
+                              elementIndex < col.length - 1
+                            ) {
+                              const temp = col[elementIndex];
+                              col[elementIndex] = col[elementIndex + 1];
+                              col[elementIndex + 1] = temp;
+                              newColumns[colIdx] = [...col];
+                              onUpdate({ columns: newColumns });
+                            }
+                          }
+                        }}
+                      />
+                    </td>
+                  );
+                })}
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Bottom Toolbar Removed - functionality moved to Properties Panel */}
         </div>
+
         {isSelected && (
           <ElementControls
             onMoveUp={onMoveUp}

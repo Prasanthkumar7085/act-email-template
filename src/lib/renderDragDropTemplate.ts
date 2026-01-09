@@ -20,13 +20,79 @@ interface PageLayout {
   height?: number;
 }
 
+const responsiveStyles = `
+    <style>
+      @media only screen and (max-width: 600px) {
+        .custom-columns-tool,
+        .custom-columns-tool tbody,
+        .custom-columns-tool tr,
+        .custom-columns-tool td,
+        .custom-columns-tool .custom-column {
+          display: block !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* Reset table specific properties */
+        .custom-columns-tool {
+           table-layout: auto !important;
+           height: auto !important;
+        }
+
+        .custom-columns-tool td.custom-column {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          margin-bottom: 16px !important;
+          border-left: none !important;
+          border-right: none !important;
+        }
+        
+        .custom-columns-tool td.custom-column:last-child {
+          margin-bottom: 0 !important;
+        }
+      }
+
+      /* Responsive styles for email clients - Editor simulation */
+      .mobile-view-active .custom-columns-tool,
+      .mobile-view-active .custom-columns-tool tbody,
+      .mobile-view-active .custom-columns-tool tr,
+      .mobile-view-active .custom-columns-tool td,
+      .mobile-view-active .custom-columns-tool .custom-column {
+          display: block !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+      }
+      
+      .mobile-view-active .custom-columns-tool {
+           table-layout: auto !important;
+           height: auto !important;
+      }
+
+      .mobile-view-active .custom-columns-tool td.custom-column {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          margin-bottom: 16px !important;
+          border-left: none !important;
+          border-right: none !important;
+      }
+        
+      .mobile-view-active .custom-columns-tool td.custom-column:last-child {
+          margin-bottom: 0 !important;
+      }
+    </style>
+  `;
+
 function styleToString(styles: EmailElement["styles"]): string {
   if (!styles) return "";
   return Object.entries(styles)
     .map(([key, value]) => {
       // Convert camelCase to kebab-case
       const kebabKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
-      return `${kebabKey}: ${value}`;
+      return `${kebabKey}: ${value} `;
     })
     .join("; ");
 }
@@ -37,15 +103,15 @@ function renderElement(element: EmailElement): string {
   switch (element.type) {
     case "heading":
       const level = element.level || 1;
-      const HeadingTag = `h${level}`;
+      const HeadingTag = `h${level} `;
       const headingContent = element.content || "Heading";
       if (element.linkUrl) {
         const linkTarget = element.linkTarget || "_self";
         const linkRel =
           linkTarget === "_blank" ? ' rel="noopener noreferrer"' : "";
-        return `<${HeadingTag} style="${styleAttr}"><a href="${element.linkUrl}" target="${linkTarget}"${linkRel} style="color: inherit; text-decoration: none;">${headingContent}</a></${HeadingTag}>`;
+        return `< ${HeadingTag} style = "${styleAttr}" > <a href="${element.linkUrl}" target = "${linkTarget}"${linkRel} style = "color: inherit; text-decoration: none;" > ${headingContent} </a></${HeadingTag}> `;
       }
-      return `<${HeadingTag} style="${styleAttr}">${headingContent}</${HeadingTag}>`;
+      return `< ${HeadingTag} style = "${styleAttr}" > ${headingContent} </${HeadingTag}>`;
 
     case "paragraph":
       const paragraphContent = element.content || "Paragraph";
@@ -99,14 +165,14 @@ function renderElement(element: EmailElement): string {
                   ? "bottom"
                   : "top";
           return `
-                    <td style="width: ${columnWidth}%; ${columnBgStyle} padding: ${columnPadding}; vertical-align: ${verticalAlign}; ${isLast ? "" : `padding-right: ${gapPx}px;`}">
+                    <td class="custom-column" style="width: ${columnWidth}%; ${columnBgStyle} padding: ${columnPadding}; vertical-align: ${verticalAlign}; ${isLast ? "" : `padding-right: ${gapPx}px;`}">
                         ${columnContent || "&nbsp;"}
                     </td>
                 `;
         })
         .join("");
       return `
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="${styleAttr}">
+                <table class="custom-columns-tool" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="${styleAttr}">
                     <tr>
                         ${columns}
                     </tr>
@@ -197,6 +263,11 @@ export function buildEmailFromDragDrop(
   return `<!doctype html>
 
 <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    ${responsiveStyles}
+  </head>
   <body>
     <div
       style='background-color:#FFFFFF;color:#03124A;font-family:Avenir, "Avenir Next LT Pro", Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;font-size:16px;font-weight:400;letter-spacing:0.15008px;line-height:1.5;margin:0;padding:32px 0;min-height:100%;width:100%'

@@ -647,6 +647,42 @@ export default function UserFriendlyStylingPanel({
                     <h4 className="text-sm font-semibold text-gray-900 mb-3">Column Layout</h4>
                     <div className="space-y-4">
                         <div>
+                            <label className="block text-xs text-gray-600 mb-2">Number of Columns</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[1, 2, 3, 4].map((num) => (
+                                    <button
+                                        key={num}
+                                        onClick={() => {
+                                            const currentColumns = element.columns || [];
+                                            let newColumns = [...currentColumns];
+
+                                            // Provide default empty arrays if resizing from 0/undefined
+                                            if (newColumns.length === 0) {
+                                                newColumns = Array(num).fill([]);
+                                            } else if (num > newColumns.length) {
+                                                // Add improved empty columns
+                                                const columnsToAdd = num - newColumns.length;
+                                                for (let i = 0; i < columnsToAdd; i++) {
+                                                    newColumns.push([]);
+                                                }
+                                            } else if (num < newColumns.length) {
+                                                // Remove columns from the end
+                                                newColumns = newColumns.slice(0, num);
+                                            }
+
+                                            onUpdate({ columns: newColumns });
+                                        }}
+                                        className={`px-2 py-1.5 rounded text-xs font-medium transition-colors ${(element.columns?.length || 2) === num
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
                             <label className="block text-xs text-gray-600 mb-2">Column Gap</label>
                             <div className="grid grid-cols-4 gap-2">
                                 {['0px', '8px', '16px', '24px'].map((gap) => (

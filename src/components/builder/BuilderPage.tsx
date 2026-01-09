@@ -164,38 +164,46 @@ export default function BuilderPage() {
     };
 
     const formatHtml = (html: string): string => {
-        // Simple formatter: preserve existing structure and just ensure consistent indentation
-        const lines = html.split('\n');
-        let formatted: string[] = [];
+        let formatted = '';
         let indent = 0;
-        const indentSize = 2;
+        const tab = '  '; // 2 spaces indentation
 
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i].trim();
-            if (!line) {
-                formatted.push('');
-                continue;
-            }
+        // Remove existing whitespace and split by tags
+        const tokens = html.replace(/>\s*</g, '><').split(/(<[^>]+>)/g).filter(Boolean);
 
-            // Decrease indent before closing tags
-            if (line.startsWith('</')) {
-                indent = Math.max(0, indent - indentSize);
-            }
+        // List of void elements that don't need closing tags
+        const voidElements = [
+            'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+            'link', 'meta', 'param', 'source', 'track', 'wbr'
+        ];
 
-            // Add line with proper indentation
-            formatted.push(' '.repeat(indent) + line);
+        for (const token of tokens) {
+            if (token.match(/^<\//)) {
+                // Closing tag: decrease indent and add new line
+                indent = Math.max(0, indent - 1);
+                formatted += '\n' + tab.repeat(indent) + token;
+            } else if (token.match(/^<.*>$/)) {
+                // Opening or Self-closing tag
+                const tagNameMatch = token.match(/^<([a-z0-9]+)/i);
+                const tagName = tagNameMatch ? tagNameMatch[1].toLowerCase() : '';
 
-            // Increase indent after opening tags (but not self-closing or void elements)
-            if (line.startsWith('<') &&
-                !line.startsWith('</') &&
-                !line.startsWith('<!') &&
-                !line.endsWith('/>') &&
-                !line.match(/<(img|br|hr|input|meta|link|area|base|col|embed|source|track|wbr)\s/i)) {
-                indent += indentSize;
+                const isSelfClosing = token.endsWith('/>') || voidElements.includes(tagName);
+
+                formatted += '\n' + tab.repeat(indent) + token;
+
+                if (!isSelfClosing && !token.startsWith('<!')) {
+                    indent++;
+                }
+            } else {
+                // Text content
+                const text = token.trim();
+                if (text) {
+                    formatted += '\n' + tab.repeat(indent) + text;
+                }
             }
         }
 
-        return formatted.join('\n');
+        return formatted.trim();
     };
 
 
@@ -338,7 +346,7 @@ export default function BuilderPage() {
                         <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 flex items-start justify-center p-8">
                             <div className="w-full flex items-start justify-center min-h-full">
                                 <div
-                                    className="bg-white shadow-2xl rounded-lg border border-gray-200"
+                                    className={`bg-white shadow-2xl rounded-lg border border-gray-200 ${activeView === 'mobile' ? 'mobile-view-active' : ''}`}
                                     style={{
                                         width: activeView === 'mobile' ? '375px' : '600px',
                                         maxWidth: activeView === 'mobile' ? '375px' : '600px',

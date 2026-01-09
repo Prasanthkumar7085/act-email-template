@@ -104,6 +104,36 @@ export async function buildEmailFromEditor(
           margin-bottom: 0 !important;
         }
       }
+
+      /* Allow parent class to trigger mobile view (for editor preview outside iframe) */
+      .mobile-view-active .custom-columns-tool,
+      .mobile-view-active .custom-columns-tool tbody,
+      .mobile-view-active .custom-columns-tool tr,
+      .mobile-view-active .custom-columns-tool td,
+      .mobile-view-active .custom-columns-tool .custom-column {
+          display: block !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+      }
+      
+      .mobile-view-active .custom-columns-tool {
+           table-layout: auto !important;
+           height: auto !important;
+      }
+
+      .mobile-view-active .custom-columns-tool td.custom-column {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          margin-bottom: 16px !important;
+          border-left: none !important;
+          border-right: none !important;
+      }
+        
+      .mobile-view-active .custom-columns-tool td.custom-column:last-child {
+          margin-bottom: 0 !important;
+      }
     </style>
   `;
 

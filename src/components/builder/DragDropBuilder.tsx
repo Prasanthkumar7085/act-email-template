@@ -23,15 +23,15 @@ import { PREDEFINED_TEMPLATES } from "@/data/predefinedDragAndDropTemplates";
 export interface EmailElement {
   id: string;
   type:
-    | "heading"
-    | "paragraph"
-    | "list"
-    | "div"
-    | "columns"
-    | "button"
-    | "image"
-    | "spacer"
-    | "divider";
+  | "heading"
+  | "paragraph"
+  | "list"
+  | "div"
+  | "columns"
+  | "button"
+  | "image"
+  | "spacer"
+  | "divider";
   content?: string;
   level?: number;
   items?: string[];
@@ -322,17 +322,17 @@ export default function DragDropBuilder({
         id: `${element.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         children: element.children
           ? element.children.map((child: any) => ({
-              ...child,
-              id: `${child.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            }))
+            ...child,
+            id: `${child.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          }))
           : undefined,
         columns: element.columns
           ? element.columns.map((column: any) =>
-              column.map((colElement: any) => ({
-                ...colElement,
-                id: `${colElement.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              }))
-            )
+            column.map((colElement: any) => ({
+              ...colElement,
+              id: `${colElement.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            }))
+          )
           : undefined,
       }));
 
@@ -577,11 +577,10 @@ export default function DragDropBuilder({
             <div className="flex space-x-1 mt-4">
               <button
                 onClick={() => setLeftPanelTab("elements")}
-                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${
-                  leftPanelTab === "elements"
+                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === "elements"
                     ? "bg-blue-50 text-blue-600 border border-blue-200"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <Box className="w-4 h-4" />
@@ -590,11 +589,10 @@ export default function DragDropBuilder({
               </button>
               <button
                 onClick={() => setLeftPanelTab("templates")}
-                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${
-                  leftPanelTab === "templates"
+                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === "templates"
                     ? "bg-blue-50 text-blue-600 border border-blue-200"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <BookTemplate className="w-4 h-4" />
@@ -685,9 +683,10 @@ export default function DragDropBuilder({
           <div className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center min-h-full">
               <div
-                className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${
-                  activeView === "mobile" ? "scale-90" : "scale-100"
-                }`}
+                className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${activeView === "mobile"
+                    ? "scale-90 mobile-view-active"
+                    : "scale-100"
+                  }`}
                 style={{
                   width:
                     activeView === "mobile"
