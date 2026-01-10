@@ -109,9 +109,9 @@ function renderElement(element: EmailElement): string {
         const linkTarget = element.linkTarget || "_self";
         const linkRel =
           linkTarget === "_blank" ? ' rel="noopener noreferrer"' : "";
-        return `< ${HeadingTag} style = "${styleAttr}" > <a href="${element.linkUrl}" target = "${linkTarget}"${linkRel} style = "color: inherit; text-decoration: none;" > ${headingContent} </a></${HeadingTag}> `;
+        return `<${HeadingTag} style="${styleAttr}"><a href="${element.linkUrl}" target="${linkTarget}"${linkRel} style="color: inherit; text-decoration: none;">${headingContent}</a></${HeadingTag}>`;
       }
-      return `< ${HeadingTag} style = "${styleAttr}" > ${headingContent} </${HeadingTag}>`;
+      return `<${HeadingTag} style="${styleAttr}">${headingContent}</${HeadingTag}>`;
 
     case "paragraph":
       const paragraphContent = element.content || "Paragraph";
