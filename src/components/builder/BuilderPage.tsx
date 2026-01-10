@@ -7,6 +7,9 @@ import { buildEmailFromDragDrop } from '../../lib/renderDragDropTemplate';
 import ImportHtmlDialog from './ImportHtmlDialog';
 import { htmlToEditorJS } from '../../lib/htmlToEditorJS';
 import { htmlToBlocks } from '@/lib/htmlToDragDrop';
+import SendTestEmailDialog from './SendTestEmailDialog';
+import { sendEmail } from '../../server/sendEmail';
+import Toast from '../common/Toast';
 
 interface EditorData {
     time: number;
@@ -76,6 +79,8 @@ export default function BuilderPage() {
         height: 800
     }]);
     const [reInitializerEditor, setReInitializerEditor] = useState(false);
+    const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     const [professionalOptions, setProfessionalOptions] = useState<ProfessionalOptions>({
         fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
@@ -264,6 +269,36 @@ export default function BuilderPage() {
             alert('Failed to import HTML. Please check the HTML format and try again.');
         }
     };
+
+    const handleSendTestEmail = async (to: string, subject: string) => {
+        try {
+            const emails = to.split(',').map(e => e.trim()).filter(Boolean);
+            if (emails.length === 0) {
+                throw new Error('Please enter at least one valid email address');
+            }
+
+            let html: string;
+            if (builderMode === 'editorjs') {
+                html = await buildEmailFromEditor(editorData, activeView, pageLayouts[0]);
+            } else {
+                html = buildEmailFromDragDrop(dragDropElements, pageLayouts[0], activeView);
+            }
+
+            // Wrap the HTML with the necessary structure if needed, or just send it as is.
+            // Usually buildEmailFrom* returns the full HTML document.
+
+            await sendEmail({ data: { to: emails, subject, htmlContent: html } });
+            setToast({ message: 'Test email sent successfully', type: 'success' });
+        } catch (error: any) {
+            console.error('Error sending test email:', error);
+            setToast({ message: error.message || 'Failed to send test email', type: 'error' });
+            throw error; // Re-throw so the dialog can show the error if needed, but we are showing toast too. 
+            // Actually if we show toast, maybe we don't need dialog error? 
+            // The dialog handles its own error state locally if we re-throw. 
+            // Let's keep re-throw so dialog stays open on error.
+        }
+    };
+
     console.log(editorData, "editorData")
     return (
         <div className="h-screen flex flex-col bg-gray-50">
@@ -278,6 +313,7 @@ export default function BuilderPage() {
                 builderMode={builderMode}
                 setBuilderMode={setBuilderMode}
                 onImportHtml={() => setShowImportHtmlDialog(true)}
+                onSendTestEmail={() => setShowTestEmailDialog(true)}
             />
 
             <BuilderWorkspace
@@ -410,6 +446,20 @@ export default function BuilderPage() {
                 onImport={handleImportHtml}
                 builderMode={builderMode}
             />
+
+            <SendTestEmailDialog
+                isOpen={showTestEmailDialog}
+                onClose={() => setShowTestEmailDialog(false)}
+                onSend={handleSendTestEmail}
+            />
+
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     )
 }

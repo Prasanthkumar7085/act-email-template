@@ -205,9 +205,7 @@ class CustomColumnsTool {
       ${this.data.layout.customCSS}
     `;
 
-    // Note: 'gap' is handled via padding in _renderColumns, not here on the wrapper.
-    // 'padding' on the wrapper (layout.padding) can be applied if needed, but table padding is tricky.
-    // We will rely on the structure for spacing.
+
   }
 
   private _renderColumns(): void {
@@ -260,12 +258,12 @@ class CustomColumnsTool {
         // Last column: padding left = gap/2
         paddingLeft = gap / 2;
       } else {
-        // Middle columns: padding left and right = gap/2
+
         paddingLeft = gap / 2;
         paddingRight = gap / 2;
       }
 
-      // Apply TD styles (layout structure)
+
       td.style.cssText = `
             width: ${100 / this.data.numberOfColumns}%;
             vertical-align: top;
@@ -276,7 +274,6 @@ class CustomColumnsTool {
             padding-bottom: 0;
         `;
 
-      // Create inner content wrapper for styling (background, border, padding)
       const innerContent = document.createElement("div");
       innerContent.style.cssText = `
             display: block;

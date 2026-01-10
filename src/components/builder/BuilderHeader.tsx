@@ -9,7 +9,8 @@ import {
     Mail,
     LayoutTemplate,
     MousePointer2,
-    PenTool
+    PenTool,
+    Send
 } from 'lucide-react';
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
     builderMode: 'editorjs' | 'dragdrop'
     setBuilderMode: (mode: 'editorjs' | 'dragdrop') => void
     onImportHtml: () => void
+    onSendTestEmail: () => void
 }
 
 export default function BuilderHeader({
@@ -35,7 +37,8 @@ export default function BuilderHeader({
     clearCanvas,
     builderMode,
     setBuilderMode,
-    onImportHtml
+    onImportHtml,
+    onSendTestEmail
 }: Props) {
     return (
         <header className="bg-white border-b border-gray-200 h-16 px-4 flex items-center justify-between sticky top-0 z-50">
@@ -148,6 +151,16 @@ export default function BuilderHeader({
                         <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
+
+                <div className="h-6 w-px bg-gray-200 mx-1"></div>
+
+                <button
+                    onClick={onSendTestEmail}
+                    className="flex items-center gap-2 px-3 py-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 text-xs font-medium rounded-lg transition-all border border-indigo-200"
+                >
+                    <Send className="w-3.5 h-3.5" />
+                    Test
+                </button>
 
                 <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
