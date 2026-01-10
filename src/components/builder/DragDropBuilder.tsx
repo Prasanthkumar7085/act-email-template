@@ -17,7 +17,8 @@ import {
 import ElementsPalette from "./ElementsPalette";
 import DragDropCanvas from "./DragDropCanvas";
 import UserFriendlyStylingPanel from "./UserFriendlyStylingPanel";
-import { BookTemplate, Box } from "lucide-react";
+import TemplatesPalette from "./TemplatesPalette";
+import { BookTemplate, Box, MousePointerClick } from "lucide-react";
 import { PREDEFINED_TEMPLATES } from "@/data/predefinedDragAndDropTemplates";
 
 export interface EmailElement {
@@ -578,8 +579,8 @@ export default function DragDropBuilder({
               <button
                 onClick={() => setLeftPanelTab("elements")}
                 className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === "elements"
-                    ? "bg-blue-50 text-blue-600 border border-blue-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-blue-50 text-blue-600 border border-blue-200"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   }`}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -590,8 +591,8 @@ export default function DragDropBuilder({
               <button
                 onClick={() => setLeftPanelTab("templates")}
                 className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === "templates"
-                    ? "bg-blue-50 text-blue-600 border border-blue-200"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-blue-50 text-blue-600 border border-blue-200"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   }`}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -602,54 +603,11 @@ export default function DragDropBuilder({
             </div>
           </div>
 
-          <div className=" p-4">
+          <div className="flex-1 overflow-y-auto p-4 bg-white">
             {leftPanelTab === "elements" ? (
               <ElementsPalette />
             ) : (
-              <div className="space-y-4">
-                <h4 className="font-medium text-gray-900">Email Templates</h4>
-                <p className="text-sm text-gray-500 mb-4">
-                  Apply a pre-built template to start quickly
-                </p>
-
-                <div className="space-y-3">
-                  {PREDEFINED_TEMPLATES.map((template) => (
-                    <div
-                      key={template.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer"
-                      onClick={() => applyTemplate(template.id)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                          <span className="text-lg">{template.icon}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h5 className="font-medium text-gray-900">
-                              {template.name}
-                            </h5>
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              {template.elements.length} blocks
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {template.description}
-                          </p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              applyTemplate(template.id);
-                            }}
-                            className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                          >
-                            Apply Template →
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <TemplatesPalette onSelect={applyTemplate} />
             )}
           </div>
         </div>
@@ -684,8 +642,8 @@ export default function DragDropBuilder({
             <div className="flex items-center justify-center min-h-full">
               <div
                 className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${activeView === "mobile"
-                    ? "scale-90 mobile-view-active"
-                    : "scale-100"
+                  ? "scale-90 mobile-view-active"
+                  : "scale-100"
                   }`}
                 style={{
                   width:
@@ -784,9 +742,15 @@ export default function DragDropBuilder({
                 canMoveDown={canMoveDown()}
               />
             ) : (
-              <div className="p-4 text-center text-gray-500">
-                <p className="text-sm">
-                  Select an element from the canvas to edit its properties
+              <div className="h-full flex flex-col items-center justify-center p-8 text-center text-gray-400">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center mb-3">
+                  <MousePointerClick className="w-6 h-6 text-gray-300" />
+                </div>
+                <p className="text-sm font-medium text-gray-900 mb-1">
+                  No Element Selected
+                </p>
+                <p className="text-xs text-gray-500 max-w-[200px]">
+                  Click on any element in the canvas to customize its styling and properties
                 </p>
               </div>
             )}
