@@ -10,7 +10,7 @@ export const PREDEFINED_TEMPLATES: Array<{
     title: "Corporate Newsletter",
     description:
       "Professional corporate update with multiple sections and columns",
-    thumbnail: "https://images.unsplash.com/photo-1560472354-b33ff0c43?w=400",
+    thumbnail: "https://plus.unsplash.com/premium_photo-1726707614342-445f71894f80?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     data: {
       time: Date.now(),
       blocks: [
@@ -166,7 +166,7 @@ export const PREDEFINED_TEMPLATES: Array<{
     title: "Product Launch",
     description: "Exciting new product announcement with features and columns",
     thumbnail:
-      "https://images.unsplash.com/photo-1556656882-b5ff6c4e14b1?w=400",
+      "https://plus.unsplash.com/premium_photo-1661400249376-a8f6c44f9050?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     data: {
       time: Date.now(),
       blocks: [
@@ -778,7 +778,7 @@ export const PREDEFINED_TEMPLATES: Array<{
     title: "Company Update",
     description: "Important company news with multi-column layout",
     thumbnail:
-      "https://images.unsplash.com/photo-1565689228644-83e87bb6a5e1?w=400",
+      "https://images.unsplash.com/photo-1531973576160-7125cd663d86?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     data: {
       time: Date.now(),
       blocks: [
