@@ -171,12 +171,10 @@ export default function BuilderPage() {
     const formatHtml = (html: string): string => {
         let formatted = '';
         let indent = 0;
-        const tab = '  '; // 2 spaces indentation
+        const tab = '  ';
 
-        // Remove existing whitespace and split by tags
         const tokens = html.replace(/>\s*</g, '><').split(/(<[^>]+>)/g).filter(Boolean);
 
-        // List of void elements that don't need closing tags
         const voidElements = [
             'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
             'link', 'meta', 'param', 'source', 'track', 'wbr'
@@ -184,11 +182,9 @@ export default function BuilderPage() {
 
         for (const token of tokens) {
             if (token.match(/^<\//)) {
-                // Closing tag: decrease indent and add new line
                 indent = Math.max(0, indent - 1);
                 formatted += '\n' + tab.repeat(indent) + token;
             } else if (token.match(/^<.*>$/)) {
-                // Opening or Self-closing tag
                 const tagNameMatch = token.match(/^<([a-z0-9]+)/i);
                 const tagName = tagNameMatch ? tagNameMatch[1].toLowerCase() : '';
 
@@ -200,7 +196,6 @@ export default function BuilderPage() {
                     indent++;
                 }
             } else {
-                // Text content
                 const text = token.trim();
                 if (text) {
                     formatted += '\n' + tab.repeat(indent) + text;
@@ -219,13 +214,11 @@ export default function BuilderPage() {
         } else {
             html = buildEmailFromDragDrop(dragDropElements, pageLayouts[0], activeView);
         }
-        // Format the HTML nicely before storing
         const formattedHtml = formatHtml(html);
         setHtmlCode(formattedHtml);
         setShowHtmlDialog(true);
     };
 
-    // Update preview when view changes
     useEffect(() => {
         if (previewHtml) {
             openPreview();
@@ -255,12 +248,10 @@ export default function BuilderPage() {
     const handleImportHtml = (htmlString: string) => {
         try {
             if (builderMode === 'editorjs') {
-                // Convert HTML to EditorJS blocks
                 const editorJSData = htmlToEditorJS(htmlString);
                 setEditorData(editorJSData);
                 setReInitializerEditor(!reInitializerEditor);
             } else {
-                // Convert HTML to DragDrop elements
                 const dragDropElements = htmlToBlocks(htmlString);
                 setDragDropElements(dragDropElements);
             }
@@ -284,24 +275,18 @@ export default function BuilderPage() {
                 html = buildEmailFromDragDrop(dragDropElements, pageLayouts[0], activeView);
             }
 
-            // Wrap the HTML with the necessary structure if needed, or just send it as is.
-            // Usually buildEmailFrom* returns the full HTML document.
-
             await sendEmail({ data: { to: emails, subject, htmlContent: html } });
             setToast({ message: 'Test email sent successfully', type: 'success' });
         } catch (error: any) {
             console.error('Error sending test email:', error);
             setToast({ message: error.message || 'Failed to send test email', type: 'error' });
-            throw error; // Re-throw so the dialog can show the error if needed, but we are showing toast too. 
-            // Actually if we show toast, maybe we don't need dialog error? 
-            // The dialog handles its own error state locally if we re-throw. 
-            // Let's keep re-throw so dialog stays open on error.
+            throw error;
         }
     };
 
     console.log(editorData, "editorData")
     return (
-        <div className="h-screen flex flex-col bg-gray-50">
+        <div className="h-screen flex flex-col bg-surface-50">
             <BuilderHeader
                 activeView={activeView}
                 setActiveView={(v) => setActiveView(v)}
@@ -332,30 +317,31 @@ export default function BuilderPage() {
                 onDragDropElementsChange={setDragDropElements}
             />
 
+            {/* Preview Modal */}
             {previewHtml && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-7xl w-full max-h-[90vh] flex flex-col shadow-2xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-                            <h3 className="text-lg font-semibold text-gray-900">Email Preview</h3>
-                            <div className="flex items-center space-x-3">
-                                <div className="flex bg-gray-100 rounded-lg p-1">
+                <div className="fixed inset-0 bg-surface-950/60 overlay-blur flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-7xl w-full max-h-[90vh] flex flex-col shadow-modal animate-scale-in">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 flex-shrink-0">
+                            <h3 className="text-base font-semibold text-surface-900 tracking-tight">Email Preview</h3>
+                            <div className="flex items-center gap-2">
+                                <div className="flex p-0.5 bg-surface-100 rounded-lg">
                                     <button
                                         onClick={() => setActiveView('desktop')}
-                                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeView === 'desktop'
-                                            ? 'bg-white text-gray-900 shadow-sm'
-                                            : 'text-gray-600 hover:text-gray-900'
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeView === 'desktop'
+                                            ? 'bg-white text-surface-900 shadow-subtle'
+                                            : 'text-surface-500 hover:text-surface-900'
                                             }`}
                                     >
-                                        🖥️ Desktop
+                                        Desktop
                                     </button>
                                     <button
                                         onClick={() => setActiveView('mobile')}
-                                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeView === 'mobile'
-                                            ? 'bg-white text-gray-900 shadow-sm'
-                                            : 'text-gray-600 hover:text-gray-900'
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeView === 'mobile'
+                                            ? 'bg-white text-surface-900 shadow-subtle'
+                                            : 'text-surface-500 hover:text-surface-900'
                                             }`}
                                     >
-                                        📱 Mobile
+                                        Mobile
                                     </button>
                                 </div>
                                 <button
@@ -367,22 +353,22 @@ export default function BuilderPage() {
                                         const url = URL.createObjectURL(blob);
                                         window.open(url, '_blank');
                                     }}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
+                                    className="px-3.5 py-1.5 bg-brand-700 text-white rounded-lg font-medium hover:bg-brand-800 transition-colors text-xs"
                                 >
                                     Open in New Tab
                                 </button>
                                 <button
                                     onClick={() => setPreviewHtml(null)}
-                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                                    className="px-3.5 py-1.5 bg-surface-100 text-surface-700 rounded-lg font-medium hover:bg-surface-200 transition-colors text-xs"
                                 >
                                     Close
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 flex items-start justify-center p-8">
+                        <div className="flex-1 overflow-y-auto bg-surface-50 flex items-start justify-center p-8">
                             <div className="w-full flex items-start justify-center min-h-full">
                                 <div
-                                    className={`bg-white shadow-2xl rounded-lg border border-gray-200 ${activeView === 'mobile' ? 'mobile-view-active' : ''}`}
+                                    className={`bg-white shadow-elevated rounded-lg border border-surface-200 ${activeView === 'mobile' ? 'mobile-view-active' : ''}`}
                                     style={{
                                         width: activeView === 'mobile' ? '375px' : '600px',
                                         maxWidth: activeView === 'mobile' ? '375px' : '600px',
@@ -402,15 +388,15 @@ export default function BuilderPage() {
                 </div>
             )}
 
+            {/* HTML Code Modal */}
             {showHtmlDialog && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-                            <h3 className="text-lg font-semibold text-gray-900">HTML Code</h3>
-                            <div className="flex items-center space-x-3">
+                <div className="fixed inset-0 bg-surface-950/60 overlay-blur flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-modal animate-scale-in">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 flex-shrink-0">
+                            <h3 className="text-base font-semibold text-surface-900 tracking-tight">HTML Code</h3>
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={async () => {
-                                        // Copy the original unformatted HTML (before formatting)
                                         let html: string;
                                         if (builderMode === 'editorjs') {
                                             html = await buildEmailFromEditor(editorData, activeView, pageLayouts[0]);
@@ -418,21 +404,22 @@ export default function BuilderPage() {
                                             html = buildEmailFromDragDrop(dragDropElements, pageLayouts[0], activeView);
                                         }
                                         await navigator.clipboard.writeText(html);
+                                        setToast({ message: 'HTML copied to clipboard', type: 'success' });
                                     }}
-                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                                    className="px-3.5 py-1.5 bg-surface-100 text-surface-700 rounded-lg font-medium hover:bg-surface-200 transition-colors text-xs"
                                 >
-                                    📋 Copy
+                                    Copy
                                 </button>
                                 <button
                                     onClick={() => setShowHtmlDialog(false)}
-                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                                    className="px-3.5 py-1.5 bg-surface-100 text-surface-700 rounded-lg font-medium hover:bg-surface-200 transition-colors text-xs"
                                 >
                                     Close
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 overflow-auto p-6 bg-gray-900">
-                            <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap break-words overflow-x-auto">
+                        <div className="flex-1 overflow-auto p-6 bg-surface-900 rounded-b-2xl">
+                            <pre className="text-sm text-surface-100 font-mono whitespace-pre-wrap break-words overflow-x-auto">
                                 <code>{(htmlCode)}</code>
                             </pre>
                         </div>

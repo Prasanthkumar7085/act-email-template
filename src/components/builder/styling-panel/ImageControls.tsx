@@ -66,8 +66,8 @@ export default function ImageControls({ element, onUpdate }: ImageControlsProps)
                             key={style.value}
                             onClick={() => updateImageStyle(style.value as any)}
                             className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg border transition-all ${imageStyle === style.value
-                                ? 'border-blue-500 bg-blue-50 text-blue-600'
-                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                : 'border-surface-200 bg-white text-surface-500 hover:border-surface-300'
                                 }`}
                         >
                             <style.icon className={`w-4 h-4 ${style.className || ''}`} />
@@ -82,7 +82,7 @@ export default function ImageControls({ element, onUpdate }: ImageControlsProps)
                     <select
                         value={styles.width || '100%'}
                         onChange={(e) => updateStyle('width', e.target.value)}
-                        className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-500 bg-white"
+                        className="w-full px-2 py-1.5 text-xs border border-surface-200 rounded focus:outline-none focus:border-brand-500 bg-white"
                     >
                         <option value="100%">Full (100%)</option>
                         <option value="75%">75%</option>
@@ -97,7 +97,7 @@ export default function ImageControls({ element, onUpdate }: ImageControlsProps)
                     <select
                         value={styles.height || 'auto'}
                         onChange={(e) => updateStyle('height', e.target.value)}
-                        className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-500 bg-white"
+                        className="w-full px-2 py-1.5 text-xs border border-surface-200 rounded focus:outline-none focus:border-brand-500 bg-white"
                     >
                         <option value="auto">Auto</option>
                         <option value="100px">Small (100px)</option>

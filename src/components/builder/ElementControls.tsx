@@ -18,7 +18,7 @@ export default function ElementControls({
     elementType,
 }: ElementControlsProps) {
     return (
-        <div className="absolute -top-8 left-0 flex items-center space-x-1 bg-blue-600 text-white px-1 py-0.5 rounded text-xs z-20">
+        <div className="absolute -top-8 left-0 flex items-center space-x-1 bg-brand-700 text-white px-1 py-0.5 rounded text-xs z-20">
             {onMoveUp && (
                 <button
                     onClick={(e) => {
@@ -26,7 +26,7 @@ export default function ElementControls({
                         onMoveUp();
                     }}
                     disabled={!canMoveUp}
-                    className={`px-1.5 py-0.5 rounded hover:bg-blue-700 transition-colors ${
+                    className={`px-1.5 py-0.5 rounded hover:bg-brand-800 transition-colors ${
                         canMoveUp ? '' : 'opacity-50 cursor-not-allowed'
                     }`}
                     title="Move Up"
@@ -41,7 +41,7 @@ export default function ElementControls({
                         onMoveDown();
                     }}
                     disabled={!canMoveDown}
-                    className={`px-1.5 py-0.5 rounded hover:bg-blue-700 transition-colors ${
+                    className={`px-1.5 py-0.5 rounded hover:bg-brand-800 transition-colors ${
                         canMoveDown ? '' : 'opacity-50 cursor-not-allowed'
                     }`}
                     title="Move Down"

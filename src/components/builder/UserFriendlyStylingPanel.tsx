@@ -76,8 +76,8 @@ export default function UserFriendlyStylingPanel({
     return (
         <div className="flex flex-col h-full bg-white">
             {/* Element Actions Bar */}
-            <div className="p-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                <span className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-1.5">
+            <div className="p-3 border-b border-surface-100 flex items-center justify-between bg-surface-50/50">
+                <span className="text-xs font-semibold text-surface-500 uppercase flex items-center gap-1.5">
                     <MousePointer2 className="w-3.5 h-3.5" />
                     {element.type}
                 </span>
@@ -85,7 +85,7 @@ export default function UserFriendlyStylingPanel({
                     <button
                         onClick={onMoveUp}
                         disabled={!canMoveUp}
-                        className="p-1.5 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-gray-500 hover:bg-white hover:shadow-sm rounded transition-all"
+                        className="p-1.5 text-surface-500 hover:text-brand-700 disabled:opacity-30 disabled:hover:text-surface-500 hover:bg-white hover:shadow-sm rounded transition-all"
                         title="Move Up"
                     >
                         <ArrowUp className="w-3.5 h-3.5" />
@@ -93,12 +93,12 @@ export default function UserFriendlyStylingPanel({
                     <button
                         onClick={onMoveDown}
                         disabled={!canMoveDown}
-                        className="p-1.5 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-gray-500 hover:bg-white hover:shadow-sm rounded transition-all"
+                        className="p-1.5 text-surface-500 hover:text-brand-700 disabled:opacity-30 disabled:hover:text-surface-500 hover:bg-white hover:shadow-sm rounded transition-all"
                         title="Move Down"
                     >
                         <ArrowDown className="w-3.5 h-3.5" />
                     </button>
-                    <div className="w-px h-4 bg-gray-200 mx-1" />
+                    <div className="w-px h-4 bg-surface-200 mx-1" />
                     <button
                         onClick={onDelete}
                         className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
@@ -120,7 +120,7 @@ export default function UserFriendlyStylingPanel({
                             <textarea
                                 value={element.content || ''}
                                 onChange={(e) => onUpdate({ content: e.target.value })}
-                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 min-h-[80px]"
+                                className="w-full px-3 py-2 text-sm border border-surface-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 min-h-[80px]"
                                 placeholder="Enter text here..."
                             />
                         </StylingRow>
@@ -129,14 +129,14 @@ export default function UserFriendlyStylingPanel({
                         {element.type === 'list' && (
                             <>
                                 <StylingRow label="List Type">
-                                    <div className="flex bg-gray-50 rounded-lg p-1">
+                                    <div className="flex bg-surface-50 rounded-lg p-1">
                                         {['unordered', 'ordered'].map((style) => (
                                             <button
                                                 key={style}
                                                 onClick={() => updateListStyle(style as any)}
                                                 className={`flex-1 py-1.5 text-xs font-medium rounded capitalize transition-all ${(element.listStyle || 'unordered') === style
-                                                        ? 'bg-white text-blue-600 shadow-sm'
-                                                        : 'text-gray-500 hover:text-gray-900'
+                                                        ? 'bg-white text-brand-700 shadow-sm'
+                                                        : 'text-surface-500 hover:text-surface-900'
                                                     }`}
                                             >
                                                 {style}
@@ -148,7 +148,7 @@ export default function UserFriendlyStylingPanel({
                                     <textarea
                                         value={(element.items || []).join('\n')}
                                         onChange={(e) => updateListItems(e.target.value.split('\n'))}
-                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 min-h-[120px]"
+                                        className="w-full px-3 py-2 text-sm border border-surface-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 min-h-[120px]"
                                         placeholder="Item 1&#10;Item 2&#10;Item 3"
                                     />
                                 </StylingRow>
@@ -163,10 +163,10 @@ export default function UserFriendlyStylingPanel({
                                         type="url"
                                         value={element.url || element.linkUrl || ''}
                                         onChange={(e) => onUpdate({ [isButton ? 'url' : 'linkUrl']: e.target.value })}
-                                        className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                        className="w-full pl-8 pr-3 py-2 text-sm border border-surface-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                                         placeholder="https://"
                                     />
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
@@ -174,21 +174,21 @@ export default function UserFriendlyStylingPanel({
                                     </div>
                                 </div>
                                 <div className="mt-2 flex items-center gap-4">
-                                    <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                                    <label className="flex items-center gap-2 text-xs text-surface-600 cursor-pointer">
                                         <input
                                             type="radio"
                                             checked={element.linkTarget !== '_blank'}
                                             onChange={() => onUpdate({ linkTarget: '_self' })}
-                                            className="text-blue-600 focus:ring-blue-500"
+                                            className="text-brand-700 focus:ring-brand-500"
                                         />
                                         Same Tab
                                     </label>
-                                    <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                                    <label className="flex items-center gap-2 text-xs text-surface-600 cursor-pointer">
                                         <input
                                             type="radio"
                                             checked={element.linkTarget === '_blank'}
                                             onChange={() => onUpdate({ linkTarget: '_blank' })}
-                                            className="text-blue-600 focus:ring-blue-500"
+                                            className="text-brand-700 focus:ring-brand-500"
                                         />
                                         New Tab
                                     </label>
@@ -202,14 +202,14 @@ export default function UserFriendlyStylingPanel({
                 {element.type === 'heading' && (
                     <StylingSection title="Heading Settings" defaultOpen={true}>
                         <StylingRow label="Level">
-                            <div className="flex bg-gray-50 rounded-lg p-1">
+                            <div className="flex bg-surface-50 rounded-lg p-1">
                                 {[1, 2, 3, 4, 5, 6].map((level) => (
                                     <button
                                         key={level}
                                         onClick={() => onUpdate({ level })}
                                         className={`flex-1 py-1.5 text-xs font-semibold rounded transition-all ${(element.level || 1) === level
-                                                ? 'bg-white text-blue-600 shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-900'
+                                                ? 'bg-white text-brand-700 shadow-sm'
+                                                : 'text-surface-500 hover:text-surface-900'
                                             }`}
                                     >
                                         H{level}
@@ -224,14 +224,14 @@ export default function UserFriendlyStylingPanel({
                 {isColumns && (
                     <StylingSection title="Column Layout" defaultOpen={true}>
                         <StylingRow label="Columns">
-                            <div className="flex bg-gray-50 rounded-lg p-1 gap-1">
+                            <div className="flex bg-surface-50 rounded-lg p-1 gap-1">
                                 {[1, 2, 3, 4].map((count) => (
                                     <button
                                         key={count}
                                         onClick={() => updateColumnLayout(count)}
                                         className={`flex-1 py-2 text-xs font-medium rounded transition-all flex flex-col items-center gap-1 ${(element.columns?.length || 2) === count
-                                                ? 'bg-white text-blue-600 shadow-sm ring-1 ring-gray-200'
-                                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                                                ? 'bg-white text-brand-700 shadow-sm ring-1 ring-surface-200'
+                                                : 'text-surface-500 hover:text-surface-900 hover:bg-surface-100'
                                             }`}
                                     >
                                         <Layout className="w-4 h-4" />
@@ -245,7 +245,7 @@ export default function UserFriendlyStylingPanel({
                             <select
                                 value={element.columnGap || '16px'}
                                 onChange={(e) => onUpdate({ columnGap: e.target.value })}
-                                className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-500 bg-white"
+                                className="w-full px-2 py-1.5 text-xs border border-surface-200 rounded focus:outline-none focus:border-brand-500 bg-white"
                             >
                                 <option value="0px">None (0px)</option>
                                 <option value="8px">Small (8px)</option>
@@ -256,7 +256,7 @@ export default function UserFriendlyStylingPanel({
                         </StylingRow>
 
                         <StylingRow label="Vertical Align">
-                            <div className="flex bg-gray-50 rounded-lg p-1">
+                            <div className="flex bg-surface-50 rounded-lg p-1">
                                 {[
                                     { value: 'start', label: 'Top' },
                                     { value: 'center', label: 'Middle' },
@@ -267,8 +267,8 @@ export default function UserFriendlyStylingPanel({
                                         key={align.value}
                                         onClick={() => onUpdate({ columnAlign: align.value as any })}
                                         className={`flex-1 py-1.5 text-[10px] font-medium rounded transition-all ${(element.columnAlign || 'stretch') === align.value
-                                                ? 'bg-white text-blue-600 shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-900'
+                                                ? 'bg-white text-brand-700 shadow-sm'
+                                                : 'text-surface-500 hover:text-surface-900'
                                             }`}
                                     >
                                         {align.label}

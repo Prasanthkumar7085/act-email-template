@@ -45,12 +45,12 @@ export default function ColorControls({ styles, onUpdate, elementType }: ColorCo
     return (
         <StylingSection title="Colors" defaultOpen={true}>
             {hasText && (
-                <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 mb-4">
+                <div className="flex bg-surface-100 p-0.5 rounded-lg border border-surface-200 mb-4">
                     <button
                         onClick={() => setActiveTab('text')}
                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'text'
-                            ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                            ? 'bg-white text-brand-700 shadow-sm ring-1 ring-black/5'
+                            : 'text-surface-500 hover:text-surface-700 hover:bg-surface-200/50'
                             }`}
                     >
                         <Type className="w-3.5 h-3.5" />
@@ -59,8 +59,8 @@ export default function ColorControls({ styles, onUpdate, elementType }: ColorCo
                     <button
                         onClick={() => setActiveTab('background')}
                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${activeTab === 'background'
-                            ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                            ? 'bg-white text-brand-700 shadow-sm ring-1 ring-black/5'
+                            : 'text-surface-500 hover:text-surface-700 hover:bg-surface-200/50'
                             }`}
                     >
                         <PaintBucket className="w-3.5 h-3.5" />
@@ -74,7 +74,7 @@ export default function ColorControls({ styles, onUpdate, elementType }: ColorCo
                 <div className="flex items-center gap-3">
                     <div className="relative group">
                         <div
-                            className="w-10 h-10 rounded-lg shadow-sm border border-gray-200 cursor-pointer overflow-hidden relative ring-1 ring-transparent group-hover:ring-blue-500 transition-all"
+                            className="w-10 h-10 rounded-lg shadow-sm border border-surface-200 cursor-pointer overflow-hidden relative ring-1 ring-transparent group-hover:ring-brand-500 transition-all"
                             style={{ backgroundColor: currentColor }}
                         >
                             <input
@@ -84,18 +84,18 @@ export default function ColorControls({ styles, onUpdate, elementType }: ColorCo
                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                             />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow border border-gray-100 pointer-events-none">
-                            <Pipette className="w-2.5 h-2.5 text-gray-400" />
+                        <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow border border-surface-100 pointer-events-none">
+                            <Pipette className="w-2.5 h-2.5 text-surface-400" />
                         </div>
                     </div>
                     <div className="flex-1">
-                        <div className="flex items-center border border-gray-200 rounded-lg bg-white px-3 py-2 transition-all focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
-                            <span className="text-gray-400 text-xs mr-2 font-mono select-none">#</span>
+                        <div className="flex items-center border border-surface-200 rounded-lg bg-white px-3 py-2 transition-all focus-within:ring-1 focus-within:ring-brand-500 focus-within:border-brand-500">
+                            <span className="text-surface-400 text-xs mr-2 font-mono select-none">#</span>
                             <input
                                 type="text"
                                 value={currentColor.replace('#', '')}
                                 onChange={(e) => handleColorChange(`#${e.target.value}`)}
-                                className="w-full text-sm font-mono text-gray-700 focus:outline-none uppercase tracking-wide"
+                                className="w-full text-sm font-mono text-surface-700 focus:outline-none uppercase tracking-wide"
                                 placeholder="FFFFFF"
                                 maxLength={6}
                             />
@@ -105,15 +105,15 @@ export default function ColorControls({ styles, onUpdate, elementType }: ColorCo
 
                 {/* Presets */}
                 <div>
-                    <label className="text-[10px] uppercase font-semibold text-gray-400 tracking-wider mb-2 block">Presets</label>
+                    <label className="text-[10px] uppercase font-semibold text-surface-400 tracking-wider mb-2 block">Presets</label>
                     <div className="grid grid-cols-8 gap-2">
                         {defaultColors.map((color) => (
                             <button
                                 key={color}
                                 onClick={() => handleColorChange(color)}
-                                className={`w-full aspect-square rounded border border-gray-200 hover:scale-110 transition-transform ${currentColor.toLowerCase() === color.toLowerCase()
-                                    ? 'ring-2 ring-blue-500 ring-offset-1 border-transparent z-10'
-                                    : 'hover:border-gray-300'
+                                className={`w-full aspect-square rounded border border-surface-200 hover:scale-110 transition-transform ${currentColor.toLowerCase() === color.toLowerCase()
+                                    ? 'ring-2 ring-brand-500 ring-offset-1 border-transparent z-10'
+                                    : 'hover:border-surface-300'
                                     }`}
                                 style={{ backgroundColor: color }}
                                 title={color}
@@ -124,13 +124,13 @@ export default function ColorControls({ styles, onUpdate, elementType }: ColorCo
 
                 {/* Background Image Options only show when Background tab is active */}
                 {activeTab === 'background' && (
-                    <div className="pt-3 border-t border-gray-100 mt-2">
-                        <label className="text-[10px] uppercase font-semibold text-gray-400 tracking-wider mb-2 block">Background Image</label>
+                    <div className="pt-3 border-t border-surface-100 mt-2">
+                        <label className="text-[10px] uppercase font-semibold text-surface-400 tracking-wider mb-2 block">Background Image</label>
                         <input
                             type="text"
                             value={(styles?.backgroundImage || '').replace(/^url\(["']?(.*)["']?\)$/, '$1')}
                             onChange={(e) => onUpdate('backgroundImage', e.target.value ? `url(${e.target.value})` : '')}
-                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-gray-300"
+                            className="w-full px-3 py-2 text-sm border border-surface-200 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/20 transition-all placeholder:text-surface-300"
                             placeholder="https://example.com/image.jpg"
                         />
                     </div>

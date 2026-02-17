@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Upload } from 'lucide-react';
 
 interface ImageUploadProps {
     onImageSelect: (url: string) => void;
@@ -37,7 +38,7 @@ export default function ImageUpload({ onImageSelect, currentUrl }: ImageUploadPr
     return (
         <div className="space-y-3">
             <div>
-                <label className="block text-xs text-gray-600 mb-2">Upload Image</label>
+                <label className="block text-xs text-surface-500 mb-1.5">Upload Image</label>
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -47,30 +48,31 @@ export default function ImageUpload({ onImageSelect, currentUrl }: ImageUploadPr
                 />
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-brand-700 text-white rounded-lg hover:bg-brand-800 transition-colors text-sm font-medium"
                 >
-                    📁 Choose File
+                    <Upload className="w-3.5 h-3.5" />
+                    Choose File
                 </button>
             </div>
-            
+
             <div>
-                <label className="block text-xs text-gray-600 mb-2">Or Enter Image URL</label>
+                <label className="block text-xs text-surface-500 mb-1.5">Or Enter Image URL</label>
                 <input
                     type="text"
                     value={currentUrl || ''}
                     onChange={(e) => handleUrlChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full px-3 py-2 border border-surface-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm transition-all"
                     placeholder="https://example.com/image.jpg"
                 />
             </div>
 
             {preview && (
                 <div className="mt-3">
-                    <label className="block text-xs text-gray-600 mb-2">Preview</label>
+                    <label className="block text-xs text-surface-500 mb-1.5">Preview</label>
                     <img
                         src={preview}
                         alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg border border-gray-300"
+                        className="w-full h-32 object-cover rounded-lg border border-surface-200"
                         onError={() => setPreview(null)}
                     />
                 </div>
@@ -78,4 +80,3 @@ export default function ImageUpload({ onImageSelect, currentUrl }: ImageUploadPr
         </div>
     );
 }
-

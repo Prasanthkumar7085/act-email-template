@@ -4,8 +4,8 @@ export default function Toolbar({ onExport, onPreview, onClear }: { onExport: ()
     return (
         <div className="flex items-center justify-between mb-4">
             <div className="flex gap-2">
-                <button onClick={onPreview} className="px-3 py-1 bg-slate-800 text-white rounded">Preview</button>
-                <button onClick={onExport} className="px-3 py-1 bg-cyan-500 text-white rounded">Export</button>
+                <button onClick={onPreview} className="px-3 py-1 bg-surface-800 text-white rounded">Preview</button>
+                <button onClick={onExport} className="px-3 py-1 bg-brand-500 text-white rounded">Export</button>
             </div>
 
             <div>

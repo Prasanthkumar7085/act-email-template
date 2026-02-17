@@ -26,9 +26,9 @@ export default function Canvas({
 
   return (
     <div className="mt-4">
-      <div className="border border-slate-200 p-4 min-h-[320px]">
+      <div className="border border-surface-200 p-4 min-h-[320px]">
         {blocks.length === 0 ? (
-          <div className="text-center text-slate-500 py-16">
+          <div className="text-center text-surface-500 py-16">
             Add components from the left to begin building your email.
           </div>
         ) : (
@@ -36,7 +36,7 @@ export default function Canvas({
             {blocks.map((blk, idx) => (
               <div
                 key={blk.id}
-                className={`p-3 border rounded bg-white ${selectedId === blk.id ? "ring-2 ring-cyan-400" : ""}`}
+                className={`p-3 border rounded bg-white ${selectedId === blk.id ? "ring-2 ring-brand-400" : ""}`}
                 onClick={() => setSelectedId(blk.id)}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -74,13 +74,13 @@ export default function Canvas({
                   </div>
                 </div>
 
-                <div className="text-sm text-slate-700">
+                <div className="text-sm text-surface-700">
                   {blk.type === "header" && (
                     <h3 className="text-lg font-semibold">{blk.props.text}</h3>
                   )}
                   {blk.type === "text" && <p>{blk.props.text}</p>}
                   {blk.type === "button" && (
-                    <a className="inline-block px-3 py-2 bg-cyan-500 text-white rounded">
+                    <a className="inline-block px-3 py-2 bg-brand-500 text-white rounded">
                       {blk.props.text}
                     </a>
                   )}

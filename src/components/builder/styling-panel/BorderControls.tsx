@@ -40,8 +40,8 @@ export default function BorderControls({ styles, onUpdate }: BorderControlsProps
                             key={preset.value}
                             onClick={() => onUpdate('borderRadius', preset.value)}
                             className={`h-8 flex items-center justify-center rounded border transition-all ${borderRadius === preset.value
-                                ? 'border-blue-500 bg-blue-50 text-blue-600'
-                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                : 'border-surface-200 bg-white text-surface-500 hover:border-surface-300'
                                 }`}
                             title={preset.label}
                         >
@@ -51,20 +51,20 @@ export default function BorderControls({ styles, onUpdate }: BorderControlsProps
                 </div>
             </StylingRow>
 
-            <div className="h-px bg-gray-100 my-3" />
+            <div className="h-px bg-surface-100 my-3" />
 
             <StylingRow label="Border Style">
                 <div className="grid grid-cols-3 gap-1.5">
                     {['none', 'solid', 'dashed', 'dotted'].map((style) => (
                         <button
                             key={style}
-                            // Use slice to avoid showing 4 items in 3 cols, maybe group differently? 
+                            // Use slice to avoid showing 4 items in 3 cols, maybe group differently?
                             // Let's just list simplified ones or scroll?
                             // 4 items: grid-cols-4 better? Or just common ones.
                             onClick={() => updateBorder('borderStyle', style)}
                             className={`py-1.5 text-[10px] capitalize font-medium rounded border transition-all ${borderStyle === style
-                                ? 'border-blue-500 bg-blue-50 text-blue-600'
-                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                : 'border-surface-200 bg-white text-surface-500 hover:border-surface-300'
                                 }`}
                         >
                             {style}
@@ -83,23 +83,23 @@ export default function BorderControls({ styles, onUpdate }: BorderControlsProps
                                 max="10"
                                 value={parseInt(borderWidth) || 1}
                                 onChange={(e) => updateBorder('borderWidth', `${e.target.value}px`)}
-                                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                className="flex-1 h-1.5 bg-surface-200 rounded-lg appearance-none cursor-pointer accent-brand-700"
                             />
-                            <span className="text-xs w-8 text-right font-mono text-gray-500">{borderWidth}</span>
+                            <span className="text-xs w-8 text-right font-mono text-surface-500">{borderWidth}</span>
                         </div>
                     </StylingRow>
 
                     <StylingRow label="Color">
                         <div className="flex items-center gap-2">
                             <div
-                                className="w-6 h-6 rounded border border-gray-200 shadow-sm"
+                                className="w-6 h-6 rounded border border-surface-200 shadow-sm"
                                 style={{ backgroundColor: borderColor }}
                             />
                             <input
                                 type="text"
                                 value={borderColor}
                                 onChange={(e) => updateBorder('borderColor', e.target.value)}
-                                className="flex-1 px-2 py-1 text-xs border border-gray-200 rounded font-mono uppercase focus:outline-none focus:border-blue-500"
+                                className="flex-1 px-2 py-1 text-xs border border-surface-200 rounded font-mono uppercase focus:outline-none focus:border-brand-500"
                             />
                             <input
                                 type="color"

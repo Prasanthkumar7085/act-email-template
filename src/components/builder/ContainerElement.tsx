@@ -61,7 +61,7 @@ export default function ContainerElement({
     const elementStyle = {
         ...element.styles,
         position: 'relative' as const,
-        outline: isSelected ? '2px solid #06b6d4' : 'none',
+        outline: isSelected ? '2px solid #4f46e5' : 'none',
         outlineOffset: '2px',
         minHeight: '60px',
     };
@@ -73,16 +73,16 @@ export default function ContainerElement({
             className="relative group"
         >
             <div className="relative">
-                <div 
+                <div
                     ref={dropRef}
-                    style={elementStyle} 
+                    style={elementStyle}
                     onClick={(e) => {
                         // Only select container if clicking directly on it, not on children
                         if (e.target === e.currentTarget) {
                             onSelect();
                         }
                     }}
-                    className={`relative ${isOver ? 'bg-blue-50 border-2 border-blue-400 border-dashed' : ''}`}
+                    className={`relative ${isOver ? 'bg-brand-50 border-2 border-brand-400 border-dashed' : ''}`}
                 >
                     {element.children && element.children.length > 0 ? (
                         <SortableContext items={element.children.map(el => el.id)} strategy={verticalListSortingStrategy}>
@@ -152,7 +152,7 @@ export default function ContainerElement({
                                     const childIndex = element.children?.findIndex(c => c.id === child.id) ?? -1;
                                     const canMoveChildUp = childIndex > 0;
                                     const canMoveChildDown = childIndex >= 0 && childIndex < (element.children?.length ?? 0) - 1;
-                                    
+
                                     return (
                                         <NestedElement
                                             key={child.id}
@@ -198,12 +198,12 @@ export default function ContainerElement({
                             </div>
                         </SortableContext>
                     ) : (
-                        <div className="text-gray-400 text-sm py-8 text-center border-2 border-dashed border-gray-300 rounded">
+                        <div className="text-surface-400 text-sm py-8 text-center border-2 border-dashed border-surface-300 rounded">
                             Empty container - Add elements here
                         </div>
                     )}
-                    <AddElementButton 
-                        onAddElement={onAddElement} 
+                    <AddElementButton
+                        onAddElement={onAddElement}
                         position="bottom"
                         showOnHover={true}
                         parentSelected={isSelected}
@@ -229,7 +229,7 @@ export default function ContainerElement({
                     ${isSelected ? 'opacity-100' : ''}
                 `}
             >
-                <div className="w-1 h-full bg-gray-300 hover:bg-blue-500 rounded-full" />
+                <div className="w-1 h-full bg-surface-300 hover:bg-brand-500 rounded-full" />
             </div>
         </div>
     );

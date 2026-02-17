@@ -1,7 +1,7 @@
 import React from 'react'
 import StylingSection from './styling-panel/StylingSection'
 import StylingRow from './styling-panel/StylingRow'
-import { Layout, PaintBucket, Type, Maximize2, MoveHorizontal, MoveVertical, Pipette } from 'lucide-react'
+import { Pipette } from 'lucide-react'
 
 export default function PropertiesPanel({
     pageLayouts,
@@ -50,19 +50,19 @@ export default function PropertiesPanel({
                                 type="number"
                                 value={layout.width || 900}
                                 onChange={(e) => onUpdatePageLayout({ width: Number(e.target.value) || 900 })}
-                                className="w-full pl-2 pr-6 py-1.5 text-xs border border-gray-200 rounded text-gray-700 focus:outline-none focus:border-blue-500 bg-white"
+                                className="w-full pl-2 pr-6 py-1.5 text-xs border border-surface-200 rounded-lg text-surface-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/20 bg-white transition-all"
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">px</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-surface-400">px</span>
                         </div>
                         <div className="relative">
                             <input
                                 type="number"
                                 value={layout.maxWidth || 900}
                                 onChange={(e) => onUpdatePageLayout({ maxWidth: Number(e.target.value) || 900 })}
-                                className="w-full pl-2 pr-6 py-1.5 text-xs border border-gray-200 rounded text-gray-700 focus:outline-none focus:border-blue-500 bg-white"
+                                className="w-full pl-2 pr-6 py-1.5 text-xs border border-surface-200 rounded-lg text-surface-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/20 bg-white transition-all"
                                 placeholder="Max"
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">max</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-surface-400">max</span>
                         </div>
                     </div>
                 </StylingRow>
@@ -75,14 +75,14 @@ export default function PropertiesPanel({
                             max="32"
                             value={layout.borderRadius || 0}
                             onChange={(e) => onUpdatePageLayout({ borderRadius: Number(e.target.value) })}
-                            className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
+                            className="flex-1"
                         />
                         <div className="w-12 relative">
                             <input
                                 type="number"
                                 value={layout.borderRadius || 0}
                                 onChange={(e) => onUpdatePageLayout({ borderRadius: Number(e.target.value) })}
-                                className="w-full pl-1 pr-1 py-1 text-xs text-right border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                                className="w-full pl-1 pr-1 py-1 text-xs text-right border border-surface-200 rounded-lg focus:outline-none focus:border-brand-500 transition-all"
                             />
                         </div>
                     </div>
@@ -95,7 +95,7 @@ export default function PropertiesPanel({
                     <div className="flex items-center gap-3">
                         <div className="relative group">
                             <div
-                                className="w-10 h-10 rounded-lg shadow-sm border border-gray-200 cursor-pointer overflow-hidden relative ring-1 ring-transparent group-hover:ring-blue-500 transition-all"
+                                className="w-10 h-10 rounded-lg shadow-subtle border border-surface-200 cursor-pointer overflow-hidden relative ring-1 ring-transparent group-hover:ring-brand-500 transition-all"
                                 style={{ backgroundColor: layout.background || '#ffffff' }}
                             >
                                 <input
@@ -105,18 +105,18 @@ export default function PropertiesPanel({
                                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                                 />
                             </div>
-                            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow border border-gray-100 pointer-events-none">
-                                <Pipette className="w-2.5 h-2.5 text-gray-400" />
+                            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-subtle border border-surface-100 pointer-events-none">
+                                <Pipette className="w-2.5 h-2.5 text-surface-400" />
                             </div>
                         </div>
                         <div className="flex-1">
-                            <div className="flex items-center border border-gray-200 rounded-lg bg-white px-3 py-2 transition-all focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
-                                <span className="text-gray-400 text-xs mr-2 font-mono select-none">#</span>
+                            <div className="flex items-center border border-surface-200 rounded-lg bg-white px-3 py-2 transition-all focus-within:ring-1 focus-within:ring-brand-500 focus-within:border-brand-500">
+                                <span className="text-surface-400 text-xs mr-2 font-mono select-none">#</span>
                                 <input
                                     type="text"
                                     value={(layout.background || '').replace('#', '')}
                                     onChange={(e) => onUpdatePageLayout({ background: `#${e.target.value}` })}
-                                    className="w-full text-sm font-mono text-gray-700 focus:outline-none uppercase tracking-wide"
+                                    className="w-full text-sm font-mono text-surface-700 focus:outline-none uppercase tracking-wide"
                                     placeholder="FFFFFF"
                                     maxLength={6}
                                 />
@@ -124,14 +124,14 @@ export default function PropertiesPanel({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-8 gap-2">
+                    <div className="grid grid-cols-8 gap-1.5">
                         {defaultColors.map((color) => (
                             <button
                                 key={color}
                                 onClick={() => onUpdatePageLayout({ background: color })}
-                                className={`w-full aspect-square rounded border border-gray-200 hover:scale-110 transition-transform ${(layout.background || '').toLowerCase() === color.toLowerCase()
-                                    ? 'ring-2 ring-blue-500 ring-offset-1 border-transparent z-10'
-                                    : 'hover:border-gray-300'
+                                className={`w-full aspect-square rounded-md border border-surface-200 hover:scale-110 transition-transform ${(layout.background || '').toLowerCase() === color.toLowerCase()
+                                    ? 'ring-2 ring-brand-500 ring-offset-1 border-transparent z-10'
+                                    : 'hover:border-surface-300'
                                     }`}
                                 style={{ backgroundColor: color }}
                                 title={color}
@@ -139,19 +139,19 @@ export default function PropertiesPanel({
                         ))}
                     </div>
 
-                    <div className="pt-2 border-t border-gray-100">
-                        <label className="text-[10px] uppercase font-semibold text-gray-400 tracking-wider mb-2 block">Background Image</label>
+                    <div className="pt-2 border-t border-surface-100">
+                        <label className="text-[10px] uppercase font-semibold text-surface-400 tracking-wider mb-2 block">Background Image</label>
                         <input
                             type="text"
                             value={layout.backgroundImage || ''}
                             onChange={(e) => onUpdatePageLayout({ backgroundImage: e.target.value })}
-                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all font-mono"
+                            className="w-full px-3 py-2 text-xs border border-surface-200 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/20 transition-all font-mono"
                             placeholder="https://example.com/bg.jpg"
                         />
                         {layout.backgroundImage && (
                             <div className="grid grid-cols-2 gap-2 mt-2">
                                 <select
-                                    className="px-2 py-1.5 text-xs border border-gray-200 rounded bg-white focus:outline-none focus:border-blue-500"
+                                    className="px-2 py-1.5 text-xs border border-surface-200 rounded-lg bg-white focus:outline-none focus:border-brand-500 transition-all"
                                     value={layout.backgroundSize || 'cover'}
                                     onChange={(e) => onUpdatePageLayout({ backgroundSize: e.target.value })}
                                 >
@@ -160,7 +160,7 @@ export default function PropertiesPanel({
                                     <option value="auto">Auto</option>
                                 </select>
                                 <select
-                                    className="px-2 py-1.5 text-xs border border-gray-200 rounded bg-white focus:outline-none focus:border-blue-500"
+                                    className="px-2 py-1.5 text-xs border border-surface-200 rounded-lg bg-white focus:outline-none focus:border-brand-500 transition-all"
                                     value={layout.backgroundRepeat || 'no-repeat'}
                                     onChange={(e) => onUpdatePageLayout({ backgroundRepeat: e.target.value })}
                                 >
@@ -178,55 +178,55 @@ export default function PropertiesPanel({
             {/* Padding Section */}
             <StylingSection title="Canvas Padding" defaultOpen={true}>
                 <div className="space-y-3">
-                    <div className="grid grid-cols-5 gap-1 bg-gray-50 p-1 rounded-lg border border-gray-100">
+                    <div className="grid grid-cols-5 gap-1 bg-surface-50 p-1 rounded-lg">
                         {paddingPresets.map((preset) => (
                             <button
                                 key={preset.value}
                                 onClick={() => onUpdatePageLayout({
                                     padding: { top: preset.value, right: preset.value, bottom: preset.value, left: preset.value }
                                 })}
-                                className="py-1 text-[10px] font-medium text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm rounded transition-all"
+                                className="py-1.5 text-[10px] font-medium text-surface-500 hover:text-surface-900 hover:bg-white hover:shadow-subtle rounded-md transition-all"
                             >
                                 {preset.label}
                             </button>
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="relative group">
-                            <label className="absolute left-2 top-1.5 text-[10px] text-gray-400 font-semibold">T</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="relative">
+                            <label className="absolute left-2 top-1.5 text-[10px] text-surface-400 font-semibold">T</label>
                             <input
                                 type="number"
                                 value={layout.padding?.top || 0}
                                 onChange={(e) => onUpdatePageLayout({ padding: { ...(layout.padding || {}), top: Number(e.target.value) } })}
-                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-gray-200 rounded text-gray-700 focus:outline-none focus:border-blue-500 transition-all text-right"
+                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-surface-200 rounded-lg text-surface-700 focus:outline-none focus:border-brand-500 transition-all text-right"
                             />
                         </div>
-                        <div className="relative group">
-                            <label className="absolute left-2 top-1.5 text-[10px] text-gray-400 font-semibold">B</label>
+                        <div className="relative">
+                            <label className="absolute left-2 top-1.5 text-[10px] text-surface-400 font-semibold">B</label>
                             <input
                                 type="number"
                                 value={layout.padding?.bottom || 0}
                                 onChange={(e) => onUpdatePageLayout({ padding: { ...(layout.padding || {}), bottom: Number(e.target.value) } })}
-                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-gray-200 rounded text-gray-700 focus:outline-none focus:border-blue-500 transition-all text-right"
+                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-surface-200 rounded-lg text-surface-700 focus:outline-none focus:border-brand-500 transition-all text-right"
                             />
                         </div>
-                        <div className="relative group">
-                            <label className="absolute left-2 top-1.5 text-[10px] text-gray-400 font-semibold">L</label>
+                        <div className="relative">
+                            <label className="absolute left-2 top-1.5 text-[10px] text-surface-400 font-semibold">L</label>
                             <input
                                 type="number"
                                 value={layout.padding?.left || 0}
                                 onChange={(e) => onUpdatePageLayout({ padding: { ...(layout.padding || {}), left: Number(e.target.value) } })}
-                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-gray-200 rounded text-gray-700 focus:outline-none focus:border-blue-500 transition-all text-right"
+                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-surface-200 rounded-lg text-surface-700 focus:outline-none focus:border-brand-500 transition-all text-right"
                             />
                         </div>
-                        <div className="relative group">
-                            <label className="absolute left-2 top-1.5 text-[10px] text-gray-400 font-semibold">R</label>
+                        <div className="relative">
+                            <label className="absolute left-2 top-1.5 text-[10px] text-surface-400 font-semibold">R</label>
                             <input
                                 type="number"
                                 value={layout.padding?.right || 0}
                                 onChange={(e) => onUpdatePageLayout({ padding: { ...(layout.padding || {}), right: Number(e.target.value) } })}
-                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-gray-200 rounded text-gray-700 focus:outline-none focus:border-blue-500 transition-all text-right"
+                                className="w-full pl-6 pr-2 py-1.5 text-xs border border-surface-200 rounded-lg text-surface-700 focus:outline-none focus:border-brand-500 transition-all text-right"
                             />
                         </div>
                     </div>
@@ -239,7 +239,7 @@ export default function PropertiesPanel({
                     <select
                         value={professionalOptions.fontFamily}
                         onChange={(e) => onUpdateProfessionalOptions({ fontFamily: e.target.value })}
-                        className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
+                        className="w-full px-2 py-1.5 text-xs border border-surface-200 rounded-lg bg-white focus:outline-none focus:border-brand-500 transition-all"
                     >
                         <option value="Inter, system-ui, -apple-system, 'Segoe UI', Roboto">Inter</option>
                         <option value="Arial, Helvetica, sans-serif">Arial</option>
@@ -256,7 +256,7 @@ export default function PropertiesPanel({
                             onChange={(e) => onUpdateProfessionalOptions({ baseColor: e.target.value })}
                             className="w-6 h-6 rounded cursor-pointer border-0 p-0"
                         />
-                        <span className="text-xs text-gray-600 font-mono">{professionalOptions.baseColor}</span>
+                        <span className="text-xs text-surface-600 font-mono">{professionalOptions.baseColor}</span>
                     </div>
                 </StylingRow>
             </StylingSection>

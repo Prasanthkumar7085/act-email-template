@@ -102,28 +102,28 @@ function DraggableElement({ element }: { element: PaletteElement }) {
       {...attributes}
       className={`
         group relative flex items-center gap-3 p-3 rounded-xl cursor-grab active:cursor-grabbing
-        bg-white border border-gray-200 shadow-sm transition-all duration-200
-        hover:border-blue-400 hover:shadow-md hover:-translate-y-0.5
-        ${isDragging ? "opacity-50 ring-2 ring-blue-500 scale-95" : "opacity-100"}
+        bg-white border border-surface-200 shadow-sm transition-all duration-200
+        hover:border-brand-400 hover:shadow-md hover:-translate-y-0.5
+        ${isDragging ? "opacity-50 ring-2 ring-brand-500 scale-95" : "opacity-100"}
       `}
     >
       <div className={`
         flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors
-        bg-gray-50 text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-600
+        bg-surface-50 text-surface-500 group-hover:bg-brand-50 group-hover:text-brand-700
       `}>
         {element.icon}
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-semibold text-gray-700 group-hover:text-gray-900 truncate">
+        <div className="text-xs font-semibold text-surface-700 group-hover:text-surface-900 truncate">
           {element.label}
         </div>
-        <div className="text-[10px] text-gray-400 truncate">
+        <div className="text-[10px] text-surface-400 truncate">
           {element.description}
         </div>
       </div>
 
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-300">
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-surface-300">
         <GripVertical className="w-4 h-4" />
       </div>
     </div>
@@ -138,7 +138,7 @@ export default function ElementsPalette() {
     <div className="space-y-6">
       {/* Content Section */}
       <div>
-        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
+        <h4 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-1">
           Content Blocks
         </h4>
         <div className="grid grid-cols-1 gap-2">
@@ -150,7 +150,7 @@ export default function ElementsPalette() {
 
       {/* Layout Section */}
       <div>
-        <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
+        <h4 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-1">
           Layout Structure
         </h4>
         <div className="grid grid-cols-1 gap-2">

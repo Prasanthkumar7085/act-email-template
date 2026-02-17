@@ -13,7 +13,7 @@ export default function AddElementButton({ onAddElement, position = 'inline', sh
 
     const createElement = (type: EmailElement['type']): EmailElement => {
         const baseId = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
+
         switch (type) {
             case 'heading':
                 return {
@@ -56,7 +56,7 @@ export default function AddElementButton({ onAddElement, position = 'inline', sh
                     type: 'button',
                     content: 'Click Me',
                     styles: {
-                        backgroundColor: '#06b6d4',
+                        backgroundColor: '#4f46e5',
                         color: '#ffffff',
                         padding: '12px 24px',
                         borderRadius: '8px',
@@ -138,40 +138,40 @@ export default function AddElementButton({ onAddElement, position = 'inline', sh
         setShowMenu(false);
     };
 
-    const buttonClass = position === 'top' 
+    const buttonClass = position === 'top'
         ? 'absolute -top-4 left-1/2 transform -translate-x-1/2'
         : position === 'bottom'
         ? 'absolute -bottom-4 left-1/2 transform -translate-x-1/2'
         : 'mx-auto my-2';
 
     const shouldShow = !showOnHover || parentSelected;
-    
+
     return (
         <div className={`relative ${buttonClass} ${shouldShow ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
             <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg z-10"
+                className="flex items-center justify-center w-8 h-8 bg-brand-700 text-white rounded-full hover:bg-brand-800 transition-colors shadow-lg z-10"
                 title="Add element"
             >
                 <span className="text-lg">+</span>
             </button>
-            
+
             {showMenu && (
                 <>
-                    <div 
-                        className="fixed inset-0 z-20" 
+                    <div
+                        className="fixed inset-0 z-20"
                         onClick={() => setShowMenu(false)}
                     />
-                    <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-30 min-w-[200px]">
+                    <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-surface-200 z-30 min-w-[200px]">
                         <div className="p-2">
-                            <div className="text-xs font-semibold text-gray-500 uppercase px-2 py-1 mb-1">
+                            <div className="text-xs font-semibold text-surface-500 uppercase px-2 py-1 mb-1">
                                 Add Element
                             </div>
                             {elementTypes.map(({ type, label, icon }) => (
                                 <button
                                     key={type}
                                     onClick={() => handleAdd(type)}
-                                    className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-md transition-colors"
+                                    className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-surface-700 hover:bg-brand-50 rounded-md transition-colors"
                                 >
                                     <span>{icon}</span>
                                     <span>{label}</span>

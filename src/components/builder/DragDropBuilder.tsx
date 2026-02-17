@@ -120,7 +120,6 @@ export default function DragDropBuilder({
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-    // Check if dragging from palette (elements start with 'palette-')
     if (String(event.active.id).startsWith("palette-")) {
       setIsDraggingFromPalette(true);
     }
@@ -133,7 +132,6 @@ export default function DragDropBuilder({
 
     if (!over) return;
 
-    // If dragging from palette, add new element
     if (String(active.id).startsWith("palette-")) {
       const elementType = String(active.id).replace(
         "palette-",
@@ -141,7 +139,6 @@ export default function DragDropBuilder({
       ) as EmailElement["type"];
       const newElement = createElementFromType(elementType);
 
-      // If dropped on a specific element, insert before it, otherwise append
       if (
         String(over.id) !== "canvas-drop-zone" &&
         !String(over.id).startsWith("palette-")
@@ -161,7 +158,6 @@ export default function DragDropBuilder({
       return;
     }
 
-    // If dragging within canvas, reorder elements
     if (
       active.id !== over.id &&
       !String(over.id).startsWith("palette-") &&
@@ -259,7 +255,7 @@ export default function DragDropBuilder({
           url: "",
           linkTarget: "_blank",
           styles: {
-            backgroundColor: "#06b6d4",
+            backgroundColor: "#0a7b74",
             color: "#ffffff",
             padding: "12px 24px",
             borderRadius: "8px",
@@ -317,7 +313,6 @@ export default function DragDropBuilder({
   const applyTemplate = (templateId: string) => {
     const template = PREDEFINED_TEMPLATES.find((t) => t.id === templateId);
     if (template && template.elements) {
-      // Generate new IDs for all elements to avoid conflicts
       const elementsWithNewIds = template.elements.map((element: any) => ({
         ...element,
         id: `${element.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -437,7 +432,6 @@ export default function DragDropBuilder({
     setSelectedElementId(newElement.id);
   };
 
-  // Find selected element (including nested ones)
   const findElementById = (
     els: EmailElement[],
     id: string
@@ -505,7 +499,6 @@ export default function DragDropBuilder({
         newEls[path[0]] = { ...newEls[path[0]], children: newElements };
         return newEls;
       }
-      // Handle nested paths
       return els.map((el, idx) => {
         if (idx === path[0]) {
           if (path[1] === -1 && el.children) {
@@ -531,7 +524,6 @@ export default function DragDropBuilder({
     const path = findElementIndex(elements, selectedElementId);
     if (!path || path.length === 0) return;
 
-    // For top-level elements
     if (path.length === 1) {
       const index = path[0];
       const newIndex = direction === "up" ? index - 1 : index + 1;
@@ -541,9 +533,6 @@ export default function DragDropBuilder({
       onElementsChange(newElements);
       return;
     }
-
-    // For nested elements, we need to handle them differently
-    // This is complex, so let's handle top-level first
   };
 
   const canMoveUp = (): boolean => {
@@ -567,43 +556,43 @@ export default function DragDropBuilder({
     >
       <div className="flex-1 flex overflow-hidden">
         {/* Left Side - Elements & Templates Panel */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
-          <div className="p-4 border-b border-gray-200 flex-shrink-0">
-            <h3 className="font-semibold text-gray-900 mb-2">Add Content</h3>
-            <p className="text-sm text-gray-500">
+        <div className="w-72 lg:w-80 bg-white border-r border-surface-200 flex flex-col h-full flex-shrink-0">
+          <div className="p-4 border-b border-surface-200 flex-shrink-0">
+            <h3 className="font-semibold text-surface-900 mb-2 text-sm tracking-tight">Add Content</h3>
+            <p className="text-xs text-surface-500">
               Drag elements or apply templates
             </p>
 
             {/* Tabs */}
-            <div className="flex space-x-1 mt-4">
+            <div className="flex p-0.5 bg-surface-100 rounded-lg mt-3">
               <button
                 onClick={() => setLeftPanelTab("elements")}
-                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === "elements"
-                  ? "bg-blue-50 text-blue-600 border border-blue-200"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-all ${leftPanelTab === "elements"
+                  ? "bg-white text-surface-900 shadow-subtle"
+                  : "text-surface-500 hover:text-surface-900"
                   }`}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <Box className="w-4 h-4" />
+                  <Box className="w-3.5 h-3.5" />
                   <span>Elements</span>
                 </div>
               </button>
               <button
                 onClick={() => setLeftPanelTab("templates")}
-                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-colors ${leftPanelTab === "templates"
-                  ? "bg-blue-50 text-blue-600 border border-blue-200"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-all ${leftPanelTab === "templates"
+                  ? "bg-white text-surface-900 shadow-subtle"
+                  : "text-surface-500 hover:text-surface-900"
                   }`}
               >
                 <div className="flex items-center justify-center gap-2">
-                  <BookTemplate className="w-4 h-4" />
+                  <BookTemplate className="w-3.5 h-3.5" />
                   <span>Templates</span>
                 </div>
               </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 bg-white">
+          <div className="flex-1 overflow-y-auto p-4 bg-white panel-scroll">
             {leftPanelTab === "elements" ? (
               <ElementsPalette />
             ) : (
@@ -613,24 +602,21 @@ export default function DragDropBuilder({
         </div>
 
         {/* Center - Canvas */}
-        <div className="flex-1 bg-gray-50 flex flex-col overflow-hidden">
-          <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <div className="flex-1 bg-surface-50 flex flex-col overflow-hidden min-w-0">
+          <div className="bg-white border-b border-surface-200 px-6 py-3.5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-xs font-semibold text-surface-500 uppercase tracking-wider">
                   Drag & Drop Builder
                 </h2>
-                <p className="text-sm text-gray-500">
-                  Build your email template
-                </p>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-500">
-                  <span className="font-medium">{elements.length}</span>{" "}
+              <div className="flex items-center gap-3">
+                <div className="text-xs text-surface-500">
+                  <span className="font-semibold text-surface-700">{elements.length}</span>{" "}
                   elements
                 </div>
                 {leftPanelTab === "templates" && (
-                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  <div className="text-xs text-brand-700 bg-brand-50 px-2.5 py-1 rounded-md font-medium">
                     Template Mode
                   </div>
                 )}
@@ -641,7 +627,7 @@ export default function DragDropBuilder({
           <div className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center min-h-full">
               <div
-                className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ${activeView === "mobile"
+                className={`bg-white rounded-xl shadow-elevated transform transition-all duration-300 ring-1 ring-surface-200 ${activeView === "mobile"
                   ? "scale-90 mobile-view-active"
                   : "scale-100"
                   }`}
@@ -705,16 +691,16 @@ export default function DragDropBuilder({
         </div>
 
         {/* Right Side - Styling Panel */}
-        <div className="w-96 bg-white border-l border-gray-200 flex flex-col h-full">
-          <div className="p-4 border-b border-gray-200 flex-shrink-0">
-            <h3 className="font-semibold text-gray-900 mb-1">Properties</h3>
-            <p className="text-sm text-gray-500">
+        <div className="w-80 lg:w-96 bg-white border-l border-surface-200 flex flex-col h-full flex-shrink-0">
+          <div className="p-4 border-b border-surface-200 flex-shrink-0">
+            <h3 className="font-semibold text-surface-900 mb-1 text-sm tracking-tight">Properties</h3>
+            <p className="text-xs text-surface-500">
               {selectedElement
                 ? `Editing: ${selectedElement.type}`
                 : "Select an element to edit"}
             </p>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto panel-scroll">
             {selectedElement ? (
               <UserFriendlyStylingPanel
                 element={selectedElement}
@@ -742,14 +728,14 @@ export default function DragDropBuilder({
                 canMoveDown={canMoveDown()}
               />
             ) : (
-              <div className="h-full flex flex-col items-center justify-center p-8 text-center text-gray-400">
-                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center mb-3">
-                  <MousePointerClick className="w-6 h-6 text-gray-300" />
+              <div className="h-full flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-14 h-14 bg-surface-100 rounded-2xl flex items-center justify-center mb-4">
+                  <MousePointerClick className="w-6 h-6 text-surface-400" />
                 </div>
-                <p className="text-sm font-medium text-gray-900 mb-1">
+                <p className="text-sm font-medium text-surface-900 mb-1">
                   No Element Selected
                 </p>
-                <p className="text-xs text-gray-500 max-w-[200px]">
+                <p className="text-xs text-surface-500 max-w-[220px] leading-relaxed">
                   Click on any element in the canvas to customize its styling and properties
                 </p>
               </div>
@@ -760,7 +746,7 @@ export default function DragDropBuilder({
 
       <DragOverlay dropAnimation={null}>
         {activeId && isDraggingFromPalette ? (
-          <div className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg">
+          <div className="bg-brand-700 text-white px-4 py-2 rounded-lg shadow-float text-sm font-medium">
             {String(activeId).replace("palette-", "")}
           </div>
         ) : null}

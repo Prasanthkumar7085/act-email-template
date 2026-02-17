@@ -67,8 +67,8 @@ function ColumnDropZone({
       style={{
         padding: columnPadding || "8px",
         minHeight: "60px",
-        backgroundColor: columnColor || (isOver ? "#dbeafe" : "transparent"),
-        ...(isOver && !columnColor ? { border: "2px dashed #3b82f6" } : {}),
+        backgroundColor: columnColor || (isOver ? "#e0e7ff" : "transparent"),
+        ...(isOver && !columnColor ? { border: "2px dashed #6366f1" } : {}),
       }}
       className="relative column-zone"
       onClick={(e) => {
@@ -138,7 +138,7 @@ function ColumnDropZone({
           </div>
         </SortableContext>
       ) : (
-        <div className="text-gray-400 text-xs py-4 text-center border-2 border-dashed border-gray-300 rounded">
+        <div className="text-surface-400 text-xs py-4 text-center border-2 border-dashed border-surface-300 rounded">
           Empty column
         </div>
       )}
@@ -192,7 +192,7 @@ export default function ColumnsElement({
   const elementStyle = {
     ...element.styles,
     position: "relative" as const,
-    outline: isSelected ? "2px solid #06b6d4" : "none",
+    outline: isSelected ? "2px solid #4f46e5" : "none",
     outlineOffset: "2px",
     minHeight: "60px",
   };
@@ -217,7 +217,7 @@ export default function ColumnsElement({
               onSelect();
             }
           }}
-          className={`relative columns-container ${columnsIsOver ? "bg-blue-50 border-2 border-blue-400 border-dashed" : ""}`}
+          className={`relative columns-container ${columnsIsOver ? "bg-brand-50 border-2 border-brand-400 border-dashed" : ""}`}
         >
           <style>
             {`
@@ -376,7 +376,7 @@ export default function ColumnsElement({
                     ${isSelected ? "opacity-100" : ""}
                 `}
       >
-        <div className="w-1 h-full bg-gray-300 hover:bg-blue-500 rounded-full" />
+        <div className="w-1 h-full bg-surface-300 hover:bg-brand-500 rounded-full" />
       </div>
     </div>
   );

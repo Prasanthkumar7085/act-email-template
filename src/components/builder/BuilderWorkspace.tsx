@@ -57,31 +57,30 @@ export default function BuilderWorkspace({
     return (
         <div className="flex-1 flex overflow-hidden">
             {/* Left Side - Templates Panel */}
-            <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
-                <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                    <h3 className="font-semibold text-gray-900 mb-1">Email Templates</h3>
-                    <p className="text-sm text-gray-500">Choose from pre-designed templates</p>
+            <div className="w-72 lg:w-80 bg-white border-r border-surface-200 flex flex-col h-full flex-shrink-0">
+                <div className="p-4 border-b border-surface-200 flex-shrink-0">
+                    <h3 className="text-sm font-semibold text-surface-900 mb-0.5 tracking-tight">Email Templates</h3>
+                    <p className="text-xs text-surface-500">Choose from pre-designed templates</p>
                 </div>
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-4 panel-scroll">
                     <Palette loadTemplate={loadTemplate} />
                 </div>
             </div>
 
             {/* Center - Canvas */}
-            <div className="flex-1 bg-gray-50 flex flex-col overflow-hidden">
-                <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0 shadow-sm z-10">
+            <div className="flex-1 bg-surface-50 flex flex-col overflow-hidden min-w-0">
+                <div className="bg-white border-b border-surface-200 px-6 py-3.5 flex-shrink-0 z-10">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Editor Canvas</h2>
-                            <p className="text-xs text-gray-500">Use the block editor to design your email</p>
+                            <h2 className="text-xs font-semibold text-surface-500 uppercase tracking-wider">Editor Canvas</h2>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-auto p-8 relative">
+                <div className="flex-1 overflow-auto p-6 lg:p-8 relative">
                     <div className="flex items-start justify-center min-h-full pb-20">
                         <div
-                            className={`bg-white rounded-xl shadow-lg transform transition-all duration-300 ring-1 ring-gray-200 ${activeView === 'mobile' ? 'scale-90 mobile-view-active' : 'scale-100'
+                            className={`bg-white rounded-xl shadow-elevated transform transition-all duration-300 ring-1 ring-surface-200 ${activeView === 'mobile' ? 'scale-90 mobile-view-active' : 'scale-100'
                                 }`}
                             style={{
                                 width: activeView === 'mobile' ? '420px' : `${page.width || 900}px`,
@@ -117,20 +116,20 @@ export default function BuilderWorkspace({
             </div>
 
             {/* Right Side - Properties Panel */}
-            <div className="w-96 bg-white border-l border-gray-200 flex flex-col h-full">
-                <div className="p-4 border-b border-gray-200 flex-shrink-0 bg-gray-50/50">
-                    <div className="flex items-center justify-between mb-4">
+            <div className="w-80 lg:w-96 bg-white border-l border-surface-200 flex flex-col h-full flex-shrink-0">
+                <div className="p-4 border-b border-surface-200 flex-shrink-0">
+                    <div className="flex items-center justify-between mb-3">
                         <div>
-                            <h3 className="font-semibold text-gray-900 leading-tight">Properties</h3>
-                            <p className="text-xs text-gray-500 mt-0.5">Customize your template</p>
+                            <h3 className="font-semibold text-surface-900 leading-tight tracking-tight text-sm">Properties</h3>
+                            <p className="text-xs text-surface-500 mt-0.5">Customize your template</p>
                         </div>
                     </div>
-                    <div className="flex p-1 bg-gray-100/80 rounded-lg ring-1 ring-gray-900/5">
+                    <div className="flex p-0.5 bg-surface-100 rounded-lg">
                         <button
                             onClick={() => setRightTab('settings')}
                             className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${rightTab === 'settings'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+                                ? 'bg-white text-surface-900 shadow-subtle'
+                                : 'text-surface-500 hover:text-surface-900'
                                 }`}
                         >
                             Settings
@@ -138,8 +137,8 @@ export default function BuilderWorkspace({
                         <button
                             onClick={() => setRightTab('templates')}
                             className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${rightTab === 'templates'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+                                ? 'bg-white text-surface-900 shadow-subtle'
+                                : 'text-surface-500 hover:text-surface-900'
                                 }`}
                         >
                             Templates
@@ -147,7 +146,7 @@ export default function BuilderWorkspace({
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto panel-scroll">
                     {rightTab === 'settings' ? (
                         <PropertiesPanel
                             pageLayouts={pageLayouts}
@@ -158,8 +157,8 @@ export default function BuilderWorkspace({
                     ) : (
                         <div className="h-full p-4">
                             <div className="mb-4">
-                                <h4 className="font-medium text-gray-900 mb-1">Template Library</h4>
-                                <p className="text-xs text-gray-500">Browse available templates</p>
+                                <h4 className="font-medium text-surface-900 mb-1 text-sm">Template Library</h4>
+                                <p className="text-xs text-surface-500">Browse available templates</p>
                             </div>
                             <Palette loadTemplate={loadTemplate} />
                         </div>

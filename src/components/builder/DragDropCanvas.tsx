@@ -54,7 +54,7 @@ function NestedElement({
         const elementStyle = {
             ...element.styles,
             position: 'relative' as const,
-            outline: isSelected ? '2px solid #06b6d4' : 'none',
+            outline: isSelected ? '2px solid #4f46e5' : 'none',
             outlineOffset: '2px',
         };
 
@@ -85,7 +85,7 @@ function NestedElement({
                     <div style={{ ...elementStyle, textAlign: element.styles?.textAlign || 'center' }} onClick={onSelect}>
                         <button
                             style={{
-                                backgroundColor: element.styles?.backgroundColor || '#06b6d4',
+                                backgroundColor: element.styles?.backgroundColor || '#4f46e5',
                                 color: element.styles?.color || '#ffffff',
                                 padding: element.styles?.padding || '12px 24px',
                                 borderRadius: element.styles?.borderRadius || '8px',
@@ -142,14 +142,14 @@ function NestedElement({
             <div className="relative">
                 {renderElement()}
                 {isSelected && (
-                    <div className="absolute -top-8 right-0 flex items-center space-x-1 bg-blue-600 text-white px-2 py-1 rounded text-xs z-10">
+                    <div className="absolute -top-8 right-0 flex items-center space-x-1 bg-brand-700 text-white px-2 py-1 rounded text-xs z-10">
                         <span className="text-xs">{element.type}</span>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onDelete();
                             }}
-                            className="ml-2 hover:bg-blue-700 rounded px-1"
+                            className="ml-2 hover:bg-brand-800 rounded px-1"
                         >
                             🗑️
                         </button>
@@ -221,7 +221,7 @@ function SortableElement({
         const elementStyle = {
             ...element.styles,
             position: 'relative' as const,
-            outline: isSelected ? '2px solid #06b6d4' : 'none',
+            outline: isSelected ? '2px solid #4f46e5' : 'none',
             outlineOffset: '2px',
             minHeight: element.type === 'div' || element.type === 'columns' ? '60px' : undefined,
         };
@@ -359,7 +359,7 @@ function SortableElement({
             case 'button':
                 const buttonContent = element.content || 'Button';
                 const buttonStyle = {
-                    backgroundColor: element.styles?.backgroundColor || '#06b6d4',
+                    backgroundColor: element.styles?.backgroundColor || '#4f46e5',
                     color: element.styles?.color || '#ffffff',
                     padding: element.styles?.padding || '12px 24px',
                     borderRadius: element.styles?.borderRadius || '8px',
@@ -454,7 +454,7 @@ function SortableElement({
                     ${isSelected ? 'opacity-100' : ''}
                 `}
             >
-                <div className="w-1 h-full bg-gray-300 hover:bg-blue-500 rounded-full" />
+                <div className="w-1 h-full bg-surface-300 hover:bg-brand-500 rounded-full" />
             </div>
         </div>
     );
@@ -468,7 +468,7 @@ function DroppableCanvas({ children }: { children: React.ReactNode }) {
     return (
         <div
             ref={setNodeRef}
-            className={`min-h-[600px] ${isOver ? 'bg-blue-50 border-2 border-blue-400 border-dashed' : ''}`}
+            className={`min-h-[600px] ${isOver ? 'bg-brand-50 border-2 border-brand-400 border-dashed' : ''}`}
         >
             {children}
         </div>
@@ -493,10 +493,10 @@ export default function DragDropCanvas({
         return (
             <DroppableCanvas>
                 <div
-                    className="flex items-center justify-center min-h-[600px] border-2 border-dashed border-gray-300 rounded-lg"
+                    className="flex items-center justify-center min-h-[600px] border-2 border-dashed border-surface-300 rounded-lg"
                     onClick={() => onSelectElement(null)}
                 >
-                    <div className="text-center text-gray-400">
+                    <div className="text-center text-surface-400">
                         <p className="text-lg mb-2">Empty Canvas</p>
                         <p className="text-sm">Drag elements from the left panel to start building</p>
                     </div>

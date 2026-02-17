@@ -12,18 +12,18 @@ export default function StylingSection({ title, children, defaultOpen = true, cl
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className={`border-b border-gray-100 last:border-0 ${className}`}>
+        <div className={`border-b border-surface-100 last:border-0 ${className}`}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 transition-colors group rounded-md my-1 ${isOpen ? 'bg-gray-50/50' : ''}`}
+                className={`w-full flex items-center justify-between py-2.5 px-3 hover:bg-surface-50 transition-colors group rounded-md my-1 ${isOpen ? 'bg-surface-50/50' : ''}`}
             >
-                <span className={`text-xs font-semibold uppercase tracking-wide transition-colors ${isOpen ? 'text-gray-800' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                <span className={`text-xs font-semibold uppercase tracking-wide transition-colors ${isOpen ? 'text-surface-800' : 'text-surface-500 group-hover:text-surface-700'}`}>
                     {title}
                 </span>
                 {isOpen ? (
-                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500" />
+                    <ChevronDown className="w-3.5 h-3.5 text-surface-400 group-hover:text-brand-500" />
                 ) : (
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500" />
+                    <ChevronRight className="w-3.5 h-3.5 text-surface-400 group-hover:text-brand-500" />
                 )}
             </button>
             {isOpen && (

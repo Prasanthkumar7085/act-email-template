@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, X } from 'lucide-react';
 
 interface SendTestEmailDialogProps {
     isOpen: boolean;
@@ -38,59 +38,57 @@ export default function SendTestEmailDialog({ isOpen, onClose, onSend }: SendTes
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">Send Test Email</h3>
+        <div className="fixed inset-0 bg-surface-950/60 overlay-blur flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full shadow-modal overflow-hidden animate-scale-in">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200">
+                    <h3 className="text-base font-semibold text-surface-900 tracking-tight">Send Test Email</h3>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-surface-700 mb-2">
                             To Email (separate multiple with commas)
                         </label>
                         <input
                             type="text"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                            className="w-full px-3 py-2.5 border border-surface-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all text-sm"
                             placeholder="recipient1@example.com, recipient2@example.com"
                             autoFocus
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-surface-700 mb-2">
                             Subject
                         </label>
                         <input
                             type="text"
                             value={subject}
                             onChange={(e) => setSubject(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                            className="w-full px-3 py-2.5 border border-surface-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all text-sm"
                             placeholder="Email Subject"
                         />
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200">
+                        <div className="p-3 bg-rose-50 text-rose-700 text-sm rounded-xl border border-rose-200">
                             {error}
                         </div>
                     )}
 
-                    <div className="flex justify-end gap-3 pt-2">
+                    <div className="flex justify-end gap-2 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm"
+                            className="px-4 py-2 bg-surface-100 text-surface-700 rounded-lg font-medium hover:bg-surface-200 transition-colors text-sm"
                             disabled={isSending}
                         >
                             Cancel
@@ -98,7 +96,7 @@ export default function SendTestEmailDialog({ isOpen, onClose, onSend }: SendTes
                         <button
                             type="submit"
                             disabled={isSending}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-4 py-2 bg-brand-700 text-white rounded-lg font-medium hover:bg-brand-800 transition-colors text-sm shadow-brand-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSending ? (
                                 <>
