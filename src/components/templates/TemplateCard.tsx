@@ -1,12 +1,12 @@
 import React from 'react'
 import { ArrowRight, Star } from 'lucide-react'
 
-export default function TemplateCard({ template, onOpen }: { template: any; onOpen: (t: any) => void }) {
+export default function TemplateCard({ template, onOpen, actionLabel }: { template: any; onOpen: (t: any) => void; actionLabel?: string }) {
     return (
         <div className="group bg-white border border-surface-200 rounded-xl overflow-hidden shadow-card hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-200">
             <div className="h-44 bg-surface-100 overflow-hidden relative">
                 <img
-                    src={template.thumbnail || 'https://via.placeholder.com/480x240'}
+                    src={template.thumbnail || 'https://placehold.co/480x240/f1f5f9/94a3b8?text=Template'}
                     alt={template.title}
                     className="object-cover h-full w-full group-hover:scale-[1.03] transition-transform duration-500"
                 />
@@ -23,14 +23,12 @@ export default function TemplateCard({ template, onOpen }: { template: any; onOp
                         <span className="font-medium">{template.rating || 4.8}</span>
                     </div>
                 </div>
-
                 <p className="mt-3 text-xs text-surface-500 line-clamp-2 leading-relaxed">{template.description}</p>
-
                 <button
                     onClick={() => onOpen(template)}
-                    className="mt-4 w-full flex items-center justify-center gap-1.5 px-3 py-2.5 bg-brand-700 text-white rounded-lg text-sm font-medium hover:bg-brand-800 active:scale-[0.98] transition-all shadow-brand-sm hover:shadow-brand-md"
+                    className="mt-4 w-full flex items-center justify-center gap-1.5 px-3 py-2.5 bg-brand-700 text-white rounded-lg text-sm font-medium hover:bg-brand-800 active:scale-[0.98] transition-all shadow-brand-sm hover:shadow-brand-md cursor-pointer"
                 >
-                    Use template
+                    {actionLabel || 'Use template'}
                     <ArrowRight className="w-3.5 h-3.5" />
                 </button>
             </div>

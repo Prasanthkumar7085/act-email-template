@@ -10,6 +10,11 @@ import { htmlToBlocks } from '@/lib/htmlToDragDrop';
 import SendTestEmailDialog from './SendTestEmailDialog';
 import { sendEmail } from '../../server/sendEmail';
 import Toast from '../common/Toast';
+import {
+    createTemplate,
+    updateTemplate,
+} from '../../services/templateService';
+import { useAuth } from '../../store/authContext';
 
 interface EditorData {
     time: number;
@@ -52,6 +57,8 @@ interface ProfessionalOptions {
 }
 
 export default function BuilderPage() {
+    const { workspaceId } = useAuth();
+
     const [editorData, setEditorData] = useState<EditorData>({
         time: Date.now(),
         blocks: [],
@@ -82,6 +89,13 @@ export default function BuilderPage() {
     const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+    // Save / load state
+    const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+    const [templateName, setTemplateName] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const lastSavedDataRef = useRef<string>('');
+
     const [professionalOptions, setProfessionalOptions] = useState<ProfessionalOptions>({
         fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
         baseColor: '#06b6d4',
@@ -96,22 +110,44 @@ export default function BuilderPage() {
     const loadTemplate = (data: any) => {
         setEditorData(data);
         setReInitializerEditor(!reInitializerEditor);
+        setHasUnsavedChanges(false);
+        lastSavedDataRef.current = JSON.stringify(data);
     };
 
+    // On mount: restore template from localStorage (set by TemplatesPage)
     useEffect(() => {
+        const tplId = localStorage.getItem('editingTemplateId');
+        const tplName = localStorage.getItem('editingTemplateName');
+
+        if (tplId) {
+            setEditingTemplateId(tplId);
+            localStorage.removeItem('editingTemplateId');
+        }
+        if (tplName) {
+            setTemplateName(tplName);
+            localStorage.removeItem('editingTemplateName');
+        }
+
         try {
-            const raw = localStorage.getItem('selectedTemplate')
+            const raw = localStorage.getItem('selectedTemplate');
             if (raw) {
-                const parsed = JSON.parse(raw)
+                const parsed = JSON.parse(raw);
                 if (parsed) {
-                    setEditorData(parsed)
+                    setEditorData(parsed);
+                    lastSavedDataRef.current = raw;
                 }
-                localStorage.removeItem('selectedTemplate')
+                localStorage.removeItem('selectedTemplate');
             }
         } catch (err) {
-            console.warn('Failed to load selected template from storage', err)
+            console.warn('Failed to load selected template from storage', err);
         }
-    }, [])
+    }, []);
+
+    // Track unsaved changes
+    useEffect(() => {
+        const current = JSON.stringify(editorData);
+        setHasUnsavedChanges(current !== lastSavedDataRef.current);
+    }, [editorData]);
 
     const clearCanvas = () => {
         if (builderMode === 'editorjs') {
@@ -123,7 +159,7 @@ export default function BuilderPage() {
     };
 
     const exportHtml = async (view?: 'desktop' | 'mobile') => {
-        const usedView = view || activeView || 'desktop'
+        const usedView = view || activeView || 'desktop';
         let html: string;
         if (builderMode === 'editorjs') {
             html = await buildEmailFromEditor(editorData, usedView, pageLayouts[0]);
@@ -168,6 +204,49 @@ export default function BuilderPage() {
         setPreviewHtml(html);
     };
 
+    // Save template to API
+    const handleSave = async () => {
+        if (!workspaceId) {
+            setToast({ message: 'No workspace selected. Please log in again.', type: 'error' });
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // Generate compiled HTML for preview
+            let compiledHtml = '';
+            try {
+                compiledHtml = await buildEmailFromEditor(editorData, 'desktop', pageLayouts[0]);
+            } catch {}
+
+            const payload = {
+                name: templateName || 'Untitled Template',
+                editorData: editorData as unknown as Record<string, unknown>,
+                compiledHtml,
+                status: 'draft' as const,
+            };
+
+            let saved;
+            if (editingTemplateId) {
+                const res = await updateTemplate(editingTemplateId, payload);
+                saved = res.data;
+            } else {
+                const res = await createTemplate(payload);
+                saved = res.data;
+                setEditingTemplateId(saved._id);
+                setTemplateName(saved.name);
+            }
+
+            lastSavedDataRef.current = JSON.stringify(editorData);
+            setHasUnsavedChanges(false);
+            setToast({ message: `"${saved.name}" saved successfully`, type: 'success' });
+        } catch (err: any) {
+            setToast({ message: err.message || 'Failed to save template', type: 'error' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const formatHtml = (html: string): string => {
         let formatted = '';
         let indent = 0;
@@ -205,7 +284,6 @@ export default function BuilderPage() {
 
         return formatted.trim();
     };
-
 
     const showHtml = async () => {
         let html: string;
@@ -284,7 +362,6 @@ export default function BuilderPage() {
         }
     };
 
-    console.log(editorData, "editorData")
     return (
         <div className="h-screen flex flex-col bg-surface-50">
             <BuilderHeader
@@ -299,6 +376,10 @@ export default function BuilderPage() {
                 setBuilderMode={setBuilderMode}
                 onImportHtml={() => setShowImportHtmlDialog(true)}
                 onSendTestEmail={() => setShowTestEmailDialog(true)}
+                onSave={workspaceId ? handleSave : undefined}
+                isSaving={isSaving}
+                templateName={templateName}
+                hasUnsavedChanges={hasUnsavedChanges}
             />
 
             <BuilderWorkspace
@@ -448,5 +529,5 @@ export default function BuilderPage() {
                 />
             )}
         </div>
-    )
+    );
 }

@@ -1,5 +1,7 @@
+import React from 'react'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from "../styles.css?url";
+import { AuthProvider } from '../store/authContext'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -33,7 +35,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Scripts />
       </body>
     </html>

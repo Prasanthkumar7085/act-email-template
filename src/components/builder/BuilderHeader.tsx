@@ -11,7 +11,9 @@ import {
     MousePointer2,
     PenTool,
     Send,
-    ArrowLeft
+    ArrowLeft,
+    Loader2,
+    CloudUpload
 } from 'lucide-react';
 import { useRouter } from '@tanstack/react-router';
 
@@ -27,6 +29,10 @@ interface Props {
     setBuilderMode: (mode: 'editorjs' | 'dragdrop') => void
     onImportHtml: () => void
     onSendTestEmail: () => void
+    onSave?: () => void
+    isSaving?: boolean
+    templateName?: string
+    hasUnsavedChanges?: boolean
 }
 
 export default function BuilderHeader({
@@ -40,7 +46,11 @@ export default function BuilderHeader({
     builderMode,
     setBuilderMode,
     onImportHtml,
-    onSendTestEmail
+    onSendTestEmail,
+    onSave,
+    isSaving = false,
+    templateName,
+    hasUnsavedChanges = false,
 }: Props) {
     const router = useRouter()
 
@@ -61,10 +71,12 @@ export default function BuilderHeader({
                         <Mail className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-sm font-semibold text-surface-900 leading-tight tracking-tight">Email Builder</h1>
+                        <h1 className="text-sm font-semibold text-surface-900 leading-tight tracking-tight">
+                            {templateName || 'Email Builder'}
+                        </h1>
                         <div className="flex items-center gap-1.5 text-xs text-surface-500">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse-soft"></span>
-                            Unsaved changes
+                            <span className={`w-1.5 h-1.5 rounded-full ${hasUnsavedChanges ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                            {hasUnsavedChanges ? 'Unsaved changes' : 'All changes saved'}
                         </div>
                     </div>
                 </div>
@@ -153,7 +165,7 @@ export default function BuilderHeader({
                     <button
                         onClick={exportJson}
                         className="p-2 text-surface-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                        title="Save JSON"
+                        title="Download JSON"
                     >
                         <Save className="w-4 h-4" />
                     </button>
@@ -175,6 +187,23 @@ export default function BuilderHeader({
                     <Send className="w-3.5 h-3.5" />
                     Test
                 </button>
+
+                {/* Save button — only shown when onSave is provided */}
+                {onSave && (
+                    <button
+                        onClick={onSave}
+                        disabled={isSaving}
+                        className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-medium rounded-lg shadow-sm transition-all active:scale-[0.98]"
+                        title="Save template to workspace"
+                    >
+                        {isSaving ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                            <CloudUpload className="w-3.5 h-3.5" />
+                        )}
+                        {isSaving ? 'Saving...' : 'Save'}
+                    </button>
+                )}
 
                 <button
                     onClick={exportHtml}
