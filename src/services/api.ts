@@ -1,109 +1,72 @@
 /**
- * Base API client for Mailix backend.
- * Reads VITE_API_URL from env (fallback: http://localhost:3000).
+ * Same-origin API client. Tokens live in httpOnly cookies set by the server —
+ * we never touch them here. Workspace selection (non-sensitive) is stored in a
+ * readable cookie so server routes can fall back to it.
  */
 
-const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000'
-
-// Guard for SSR — localStorage only exists in the browser
 const isBrowser = typeof window !== 'undefined'
 
-// ── Token helpers ─────────────────────────────────────────────────────────────
+const WORKSPACE_COOKIE = 'mailix_ws'
 
-export function getAccessToken(): string | null {
-  return isBrowser ? localStorage.getItem('mailix_access_token') : null
+function readCookie(name: string): string | null {
+  if (!isBrowser) return null
+  const prefix = `${name}=`
+  for (const part of document.cookie.split('; ')) {
+    if (part.startsWith(prefix)) return decodeURIComponent(part.slice(prefix.length))
+  }
+  return null
 }
 
-export function getRefreshToken(): string | null {
-  return isBrowser ? localStorage.getItem('mailix_refresh_token') : null
-}
-
-export function setTokens(accessToken: string, refreshToken: string): void {
+function writeCookie(name: string, value: string, maxAgeSec = 60 * 60 * 24 * 30) {
   if (!isBrowser) return
-  localStorage.setItem('mailix_access_token', accessToken)
-  localStorage.setItem('mailix_refresh_token', refreshToken)
+  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSec}; SameSite=Lax`
 }
 
-export function clearAuth(): void {
+function deleteCookie(name: string) {
   if (!isBrowser) return
-  localStorage.removeItem('mailix_access_token')
-  localStorage.removeItem('mailix_refresh_token')
-  localStorage.removeItem('mailix_workspace_id')
-  localStorage.removeItem('mailix_user')
+  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`
 }
 
 export function getWorkspaceId(): string | null {
-  return isBrowser ? localStorage.getItem('mailix_workspace_id') : null
+  return readCookie(WORKSPACE_COOKIE)
 }
 
 export function setWorkspaceId(id: string): void {
-  if (!isBrowser) return
-  localStorage.setItem('mailix_workspace_id', id)
+  writeCookie(WORKSPACE_COOKIE, id)
 }
 
-export function setUser(user: Record<string, unknown>): void {
-  if (!isBrowser) return
-  localStorage.setItem('mailix_user', JSON.stringify(user))
-}
-
-export function getUser(): Record<string, unknown> | null {
-  if (!isBrowser) return null
-  try {
-    const raw = localStorage.getItem('mailix_user')
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
+export function clearWorkspaceId(): void {
+  deleteCookie(WORKSPACE_COOKIE)
 }
 
 // ── Core request ──────────────────────────────────────────────────────────────
 
-async function request<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-  auth = true,
-): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
-
-  if (auth) {
-    const token = getAccessToken()
-    if (token) headers['Authorization'] = `Bearer ${token}`
-  }
-
-  const res = await fetch(`${BASE_URL}${path}`, {
+async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, {
     method,
-    headers,
+    credentials: 'same-origin',
+    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
-  const json = await res.json()
+  let json: any
+  try {
+    json = await res.json()
+  } catch {
+    json = null
+  }
 
   if (!res.ok) {
-    const message =
-      json?.error?.message ||
-      json?.message ||
-      `Request failed with status ${res.status}`
+    const message = json?.error?.message ?? json?.message ?? `Request failed with status ${res.status}`
     throw new Error(message)
   }
 
   return json as T
 }
 
-// ── Typed shortcuts ───────────────────────────────────────────────────────────
-
 export const api = {
-  get: <T>(path: string, auth = true) =>
-    request<T>('GET', path, undefined, auth),
-
-  post: <T>(path: string, body?: unknown, auth = true) =>
-    request<T>('POST', path, body, auth),
-
-  patch: <T>(path: string, body?: unknown, auth = true) =>
-    request<T>('PATCH', path, body, auth),
-
-  delete: <T>(path: string, auth = true) =>
-    request<T>('DELETE', path, undefined, auth),
+  get: <T>(path: string) => request<T>('GET', path),
+  post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
+  patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
+  delete: <T>(path: string) => request<T>('DELETE', path),
 }

@@ -70,7 +70,7 @@ export interface ListFilters {
 function wsPath(suffix: string): string {
   const wsId = getWorkspaceId()
   if (!wsId) throw new Error('No workspace selected')
-  return `/api/v1/workspaces/${wsId}${suffix}`
+  return `/api/workspaces/${wsId}${suffix}`
 }
 
 function qs(filters: Record<string, unknown>): string {
@@ -155,5 +155,5 @@ export interface GalleryResponse {
 
 export function listGallery(category?: string): Promise<GalleryResponse> {
   const q = category ? `?category=${encodeURIComponent(category)}` : ''
-  return api.get<GalleryResponse>(`/api/v1/templates/gallery${q}`)
+  return api.get<GalleryResponse>(`/api/templates/gallery${q}`)
 }

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useLocation } from '@tanstack/react-router'
-import { Mail, LayoutTemplate, Hammer, User, LogOut, Bell, ChevronDown } from 'lucide-react'
+import { Mail, LayoutTemplate, Hammer, Settings, User, LogOut, Bell, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../store/authContext'
-import { getRefreshToken } from '../../services/api'
-import { logout as apiLogout } from '../../services/authService'
 
 export default function AppHeader() {
     const router = useRouter()
@@ -19,11 +17,7 @@ export default function AppHeader() {
     }, [])
 
     async function onLogout() {
-        try {
-            const rt = getRefreshToken()
-            if (rt) await apiLogout(rt)
-        } catch {}
-        logout()
+        await logout()
         router.navigate({ to: '/' })
     }
 
@@ -46,6 +40,9 @@ export default function AppHeader() {
                             </button>
                             <button onClick={() => router.navigate({ to: '/builder' })} className={`relative flex items-center gap-2 text-sm font-medium px-3.5 py-2 rounded-lg transition-all duration-200 cursor-pointer active:scale-95 ${isActive('/builder') ? 'text-brand-700 bg-brand-50' : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'}`}>
                                 <Hammer className="w-4 h-4" /><span>Builder</span>
+                            </button>
+                            <button onClick={() => router.navigate({ to: '/settings/workspace' })} className={`relative flex items-center gap-2 text-sm font-medium px-3.5 py-2 rounded-lg transition-all duration-200 cursor-pointer active:scale-95 ${isActive('/settings/workspace') ? 'text-brand-700 bg-brand-50' : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'}`}>
+                                <Settings className="w-4 h-4" /><span>Settings</span>
                             </button>
                         </nav>
                     </div>

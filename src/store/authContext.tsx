@@ -1,26 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import {
-  getAccessToken,
-  getUser,
-  clearAuth,
-  setTokens,
-  setUser as saveUser,
-  setWorkspaceId,
-  getWorkspaceId,
-} from '../services/api'
-import { getMe } from '../services/authService'
+import { getWorkspaceId, setWorkspaceId, clearWorkspaceId } from '../services/api'
+import { getMe, logout as logoutCall, type AuthUser } from '../services/authService'
 import { listMyWorkspaces, type Workspace } from '../services/workspaceService'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-export interface AuthUser {
-  _id: string
-  name: string
-  email: string
-  phone?: string
-  avatar?: string
-  status: string
-}
 
 interface AuthState {
   user: AuthUser | null
@@ -31,106 +12,81 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (accessToken: string, refreshToken: string) => Promise<void>
-  logout: () => void
+  /** Hydrate user + workspaces after auth cookies are set (e.g. after OTP verify / register). */
+  bootstrap: () => Promise<void>
+  logout: () => Promise<void>
   switchWorkspace: (workspace: Workspace) => void
   workspaces: Workspace[]
   refreshUser: () => Promise<void>
 }
 
-// ── Context ───────────────────────────────────────────────────────────────────
-
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => getUser() as AuthUser | null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [workspace, setWorkspace] = useState<Workspace | null>(null)
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // ── Boot: restore session on mount ────────────────────────────────────────
-  useEffect(() => {
-    async function restoreSession() {
-      const token = getAccessToken()
-      if (!token) {
-        setIsLoading(false)
-        return
-      }
+  const loadSession = useCallback(async () => {
+    try {
+      const meRes = await getMe()
+      setUser(meRes.data)
 
-      try {
-        // Re-fetch user profile to validate token
-        const meRes = await getMe()
-        const freshUser = meRes.data as AuthUser
-        setUser(freshUser)
-        saveUser(freshUser as unknown as Record<string, unknown>)
+      const wsRes = await listMyWorkspaces()
+      setWorkspaces(wsRes.data)
 
-        // Load workspaces
-        const wsRes = await listMyWorkspaces()
-        const wsList = wsRes.data
-        setWorkspaces(wsList)
-
-        // Pick active workspace
-        const savedWsId = getWorkspaceId()
-        const active = wsList.find((w) => w._id === savedWsId) ?? wsList[0] ?? null
-        if (active) {
-          setWorkspace(active)
-          setWorkspaceId(active._id)
-        }
-      } catch {
-        // Token invalid — clear auth
-        clearAuth()
-        setUser(null)
+      const savedWsId = getWorkspaceId()
+      const active = wsRes.data.find((w) => w._id === savedWsId) ?? wsRes.data[0] ?? null
+      if (active) {
+        setWorkspace(active)
+        setWorkspaceId(active._id)
+      } else {
         setWorkspace(null)
-      } finally {
-        setIsLoading(false)
       }
-    }
-
-    restoreSession()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // ── login ─────────────────────────────────────────────────────────────────
-  const login = useCallback(async (accessToken: string, refreshToken: string) => {
-    setTokens(accessToken, refreshToken)
-
-    const meRes = await getMe()
-    const freshUser = meRes.data as AuthUser
-    setUser(freshUser)
-    saveUser(freshUser as unknown as Record<string, unknown>)
-
-    const wsRes = await listMyWorkspaces()
-    const wsList = wsRes.data
-    setWorkspaces(wsList)
-
-    const active = wsList[0] ?? null
-    if (active) {
-      setWorkspace(active)
-      setWorkspaceId(active._id)
+    } catch {
+      // Not signed in — clear state
+      setUser(null)
+      setWorkspace(null)
+      setWorkspaces([])
     }
   }, [])
 
-  // ── logout ────────────────────────────────────────────────────────────────
-  const logout = useCallback(() => {
-    clearAuth()
+  // Boot once on mount.
+  useEffect(() => {
+    loadSession().finally(() => setIsLoading(false))
+  }, [loadSession])
+
+  const bootstrap = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      await loadSession()
+    } finally {
+      setIsLoading(false)
+    }
+  }, [loadSession])
+
+  const logout = useCallback(async () => {
+    try {
+      await logoutCall()
+    } catch {
+      // ignore network errors — we'll still clear local state
+    }
+    clearWorkspaceId()
     setUser(null)
     setWorkspace(null)
     setWorkspaces([])
   }, [])
 
-  // ── switchWorkspace ───────────────────────────────────────────────────────
   const switchWorkspace = useCallback((ws: Workspace) => {
     setWorkspace(ws)
     setWorkspaceId(ws._id)
   }, [])
 
-  // ── refreshUser ───────────────────────────────────────────────────────────
   const refreshUser = useCallback(async () => {
     try {
       const meRes = await getMe()
-      const freshUser = meRes.data as AuthUser
-      setUser(freshUser)
-      saveUser(freshUser as unknown as Record<string, unknown>)
+      setUser(meRes.data)
     } catch {
       // ignore
     }
@@ -142,9 +98,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         workspace,
         workspaceId: workspace?._id ?? null,
-        isAuthenticated: !!user && !!getAccessToken(),
+        isAuthenticated: !!user,
         isLoading,
-        login,
+        bootstrap,
         logout,
         switchWorkspace,
         workspaces,
@@ -155,8 +111,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   )
 }
-
-// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)

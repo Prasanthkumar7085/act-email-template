@@ -9,88 +9,67 @@ export interface SendOtpResponse {
 
 export interface VerifyOtpResponse {
   success: boolean
-  data: {
-    isNewUser: boolean
-    registrationToken?: string
-    accessToken?: string
-    refreshToken?: string
-  }
+  data:
+    | { isNewUser: true; registrationToken: string }
+    | { isNewUser: false; user: AuthUser }
+}
+
+export interface AuthUser {
+  _id: string
+  name: string
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface RegisterResponse {
   success: boolean
   data: {
-    user: { _id: string; name: string; email: string }
+    user: AuthUser
     workspace: { _id: string; name: string; slug: string }
-    accessToken: string
-    refreshToken: string
   }
-}
-
-export interface RefreshResponse {
-  success: boolean
-  data: { accessToken: string; refreshToken: string }
 }
 
 export interface MeResponse {
   success: boolean
-  data: {
-    _id: string
-    name: string
-    email: string
-    phone?: string
-    avatar?: string
-    status: string
-    createdAt: string
-  }
+  data: AuthUser
 }
 
 // ── Auth service ──────────────────────────────────────────────────────────────
 
-/**
- * Step 1: Send OTP to email.
- */
 export function sendOtp(email: string): Promise<SendOtpResponse> {
-  return api.post<SendOtpResponse>('/api/v1/auth/otp/send', { email }, false)
+  return api.post<SendOtpResponse>('/api/auth/otp/send', { email })
 }
 
-/**
- * Step 2: Verify OTP.
- * Returns { isNewUser: true, registrationToken } for new users.
- * Returns { isNewUser: false, accessToken, refreshToken } for existing users.
- */
 export function verifyOtp(email: string, code: string): Promise<VerifyOtpResponse> {
-  return api.post<VerifyOtpResponse>('/api/v1/auth/otp/verify', { email, code }, false)
+  return api.post<VerifyOtpResponse>('/api/auth/otp/verify', { email, code })
 }
 
-/**
- * Step 3 (new users only): Complete registration.
- */
 export function register(
+  registrationToken: string,
   name: string,
   email: string,
   workspaceName: string,
 ): Promise<RegisterResponse> {
-  return api.post<RegisterResponse>('/api/v1/auth/register', { name, email, workspaceName }, false)
+  return api.post<RegisterResponse>('/api/auth/register', {
+    registrationToken,
+    name,
+    email,
+    workspaceName,
+  })
 }
 
-/**
- * Refresh access token using refresh token.
- */
-export function refreshToken(refreshToken: string): Promise<RefreshResponse> {
-  return api.post<RefreshResponse>('/api/v1/auth/refresh', { refreshToken }, false)
+export function refreshToken(): Promise<{ success: boolean }> {
+  return api.post<{ success: boolean }>('/api/auth/refresh')
 }
 
-/**
- * Logout — invalidates the refresh token on the server.
- */
-export function logout(refreshToken: string): Promise<void> {
-  return api.post<void>('/api/v1/auth/logout', { refreshToken })
+export function logout(): Promise<void> {
+  return api.post<void>('/api/auth/logout')
 }
 
-/**
- * Get the current authenticated user's profile.
- */
 export function getMe(): Promise<MeResponse> {
-  return api.get<MeResponse>('/api/v1/auth/me')
+  return api.get<MeResponse>('/api/auth/me')
 }

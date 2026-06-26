@@ -18,28 +18,87 @@ export interface Workspace {
   updatedAt: string
 }
 
+export interface WorkspaceMember {
+  _id: string
+  userId: string
+  workspaceId: string
+  role: 'owner' | 'admin' | 'manager'
+  status: 'active' | 'invited'
+  joinedAt: string | null
+  createdAt: string
+  user?: { _id: string; name: string; email: string; avatar?: string | null }
+}
+
 export interface WorkspaceListResponse {
   success: boolean
   data: Workspace[]
 }
 
-// Backend returns { workspace: {...}, role: string }[] — flatten before returning
 interface RawWorkspaceItem {
   workspace: Omit<Workspace, 'role'>
   role: string
 }
 
-/**
- * List all workspaces the current user belongs to.
- * Backend returns { workspace: {...}, role: string }[] so we flatten it.
- */
 export async function listMyWorkspaces(): Promise<WorkspaceListResponse> {
-  const res = await api.get<{ success: boolean; data: RawWorkspaceItem[] }>('/api/v1/workspaces')
+  const res = await api.get<{ success: boolean; data: RawWorkspaceItem[] }>('/api/workspaces')
   return {
     success: res.success,
-    data: res.data.map((item) => ({
-      ...item.workspace,
-      role: item.role,
-    })),
+    data: res.data.map((item) => ({ ...item.workspace, role: item.role })),
   }
+}
+
+export function createWorkspace(name: string) {
+  return api.post<{ success: boolean; data: Workspace }>('/api/workspaces', { name })
+}
+
+export function getWorkspace(wsId: string) {
+  return api.get<{ success: boolean; data: Workspace }>(`/api/workspaces/${wsId}`)
+}
+
+export function updateWorkspace(
+  wsId: string,
+  data: {
+    name?: string
+    logo?: string | null
+    brandColor?: string | null
+    brandFont?: string | null
+  },
+) {
+  return api.patch<{ success: boolean; data: Workspace }>(`/api/workspaces/${wsId}`, data)
+}
+
+export function deleteWorkspace(wsId: string) {
+  return api.delete<{ success: boolean }>(`/api/workspaces/${wsId}`)
+}
+
+// ── Members ──────────────────────────────────────────────────────────────────
+
+export function listMembers(wsId: string) {
+  return api.get<{ success: boolean; data: WorkspaceMember[] }>(`/api/workspaces/${wsId}/members`)
+}
+
+export function inviteMember(wsId: string, email: string, role: 'admin' | 'manager') {
+  return api.post<{ success: boolean; data: WorkspaceMember }>(
+    `/api/workspaces/${wsId}/members`,
+    { email, role },
+  )
+}
+
+export function removeMember(wsId: string, userId: string) {
+  return api.delete<{ success: boolean }>(`/api/workspaces/${wsId}/members/${userId}`)
+}
+
+export function changeMemberRole(wsId: string, userId: string, role: 'admin' | 'manager') {
+  return api.patch<{ success: boolean; data: WorkspaceMember }>(
+    `/api/workspaces/${wsId}/members/${userId}/role`,
+    { role },
+  )
+}
+
+export function transferOwnership(wsId: string, newOwnerId: string) {
+  return api.post<{ success: boolean }>(`/api/workspaces/${wsId}/transfer`, { newOwnerId })
+}
+
+export function acceptInvite(token: string) {
+  return api.post<{ success: boolean; data: WorkspaceMember }>(`/api/invites/${token}/accept`)
 }
