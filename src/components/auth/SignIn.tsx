@@ -131,7 +131,6 @@ const SignIn: React.FC = () => {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
-  const [registrationToken, setRegistrationToken] = useState("");
   const [regName, setRegName] = useState("");
   const [regWorkspace, setRegWorkspace] = useState("");
 
@@ -163,17 +162,9 @@ const SignIn: React.FC = () => {
     if (otp.length !== 6) return setErrors({ otp: "Enter the 6-digit code" });
     setErrors({}); setIsSubmitting(true);
     try {
-      const res = await verifyOtp(email.trim().toLowerCase(), otp);
-      if (res.data.isNewUser) {
-        setRegistrationToken(res.data.registrationToken);
-        setStep("register");
-      }
-      else {
-        // Auth cookies are now set — hydrate the session
-        await bootstrap();
-        setSubmitDone(true); await new Promise((r) => setTimeout(r, 400));
-        router.navigate({ to: "/templates" });
-      }
+      await verifyOtp(email.trim().toLowerCase(), otp);
+
+      router.navigate({ to: "/templates" });
     } catch (err: any) { setErrors({ otp: err.message || "Invalid code" }); setOtp(""); }
     finally { setIsSubmitting(false); }
   };
@@ -184,11 +175,10 @@ const SignIn: React.FC = () => {
     const errs: Record<string, string> = {};
     if (!regName.trim() || regName.trim().length < 2) errs.name = "Name must be at least 2 characters";
     if (!regWorkspace.trim() || regWorkspace.trim().length < 2) errs.workspace = "Workspace name must be at least 2 characters";
-    if (!registrationToken) errs.submit = "Registration session expired. Please request a new code.";
     if (Object.keys(errs).length) return setErrors(errs);
     setErrors({}); setIsSubmitting(true);
     try {
-      await register(registrationToken, regName.trim(), email.trim().toLowerCase(), regWorkspace.trim());
+      await register(regName.trim(), email.trim().toLowerCase(), regWorkspace.trim());
       await bootstrap();
       setSubmitDone(true); await new Promise((r) => setTimeout(r, 400));
       router.navigate({ to: "/templates" });

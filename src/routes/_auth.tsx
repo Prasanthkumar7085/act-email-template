@@ -1,13 +1,13 @@
-import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
-import { loadCurrentUser } from '@/server/auth/currentUser'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { useAuth } from '@/store/authContext'
+
+function AuthGuard() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading || !isAuthenticated) return null
+  return <Outlet />
+}
 
 export const Route = createFileRoute('/_auth')({
-  beforeLoad: async () => {
-    const user = await loadCurrentUser()
-    if (!user) {
-      throw redirect({ to: '/' })
-    }
-    return { user }
-  },
-  component: () => <Outlet />,
+  component: AuthGuard,
 })

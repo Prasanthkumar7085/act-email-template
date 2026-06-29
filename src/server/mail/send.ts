@@ -3,8 +3,10 @@ import { env } from '../env'
 
 let cached: Resend | null = null
 
-function client() {
-  if (!cached) cached = new Resend(env().RESEND_API_KEY)
+function client(): Resend | null {
+  const key = env().RESEND_API_KEY
+  if (!key) return null
+  if (!cached) cached = new Resend(key)
   return cached
 }
 
@@ -16,8 +18,15 @@ interface SendArgs {
 }
 
 export async function sendMail({ to, subject, html, text }: SendArgs): Promise<void> {
-  const { error } = await client().emails.send({
-    from: env().EMAIL_FROM,
+  const c = client()
+  const from = env().EMAIL_FROM
+  if (!c || !from) {
+    console.log(`[mail] skipped (no Resend config) — would send to ${Array.isArray(to) ? to.join(',') : to}: ${subject}`)
+    return
+  }
+
+  const { error } = await c.emails.send({
+    from,
     to: Array.isArray(to) ? to : [to],
     subject,
     html,

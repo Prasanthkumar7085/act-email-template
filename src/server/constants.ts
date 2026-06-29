@@ -85,4 +85,16 @@ export const MSG = {
     ROLE_CHANGED: 'Member role updated successfully',
     OWNERSHIP_TRANSFERRED: 'Ownership transferred successfully',
   },
+  TEMPLATE: {
+    CREATED: 'Template saved successfully',
+    LIST_FETCHED: 'Templates retrieved successfully',
+    FETCHED: 'Template retrieved successfully',
+    UPDATED: 'Template updated successfully',
+    DELETED: 'Template deleted successfully',
+    EXPORTED: 'Template exported successfully',
+    PREVIEWED: 'Template preview generated',
+    DUPLICATED: 'Template duplicated successfully',
+    COPIED_FROM_GALLERY: 'Template copied from gallery',
+    GALLERY_FETCHED: 'Gallery retrieved successfully',
+  },
 } as const

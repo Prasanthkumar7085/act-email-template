@@ -6,15 +6,9 @@ const envSchema = z.object({
   MONGODB_URI: z.string().url(),
 
   JWT_SECRET: z.string().min(32),
-  JWT_ACCESS_EXPIRY: z.string().default('15m'),
-  JWT_REFRESH_EXPIRY: z.string().default('7d'),
 
-  OTP_EXPIRY_MINUTES: z.coerce.number().default(5),
-  OTP_MAX_ATTEMPTS: z.coerce.number().default(3),
-  OTP_HOURLY_LIMIT: z.coerce.number().default(10),
-
-  RESEND_API_KEY: z.string().min(1),
-  EMAIL_FROM: z.string().min(1),
+  RESEND_API_KEY: z.string().optional().default(''),
+  EMAIL_FROM: z.string().optional().default(''),
 
   APP_URL: z.string().url().default('http://localhost:3000'),
 })

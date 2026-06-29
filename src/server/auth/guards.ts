@@ -4,8 +4,8 @@ import { ROLE_HIERARCHY, type Role } from '../constants'
 import { User, type IUserDocument } from '../db/models/user'
 import { Workspace, type IWorkspaceDocument } from '../db/models/workspace'
 import { WorkspaceMember, type IMemberDocument } from '../db/models/member'
-import { verifyAccessToken } from './jwt'
-import { readAuthCookies } from './cookies'
+import { verifySession } from './jwt'
+import { readSessionToken } from './cookies'
 
 export interface AuthContext {
   userId: string
@@ -19,14 +19,14 @@ export interface WorkspaceContext extends AuthContext {
 }
 
 /**
- * Resolve the current user from the access-token cookie.
+ * Resolve the current user from the session cookie.
  * Throws AppError.unauthorized if absent / invalid / suspended.
  */
 export async function requireUser(request: Request): Promise<AuthContext> {
-  const { accessToken } = readAuthCookies(request)
-  if (!accessToken) throw AppError.unauthorized('Not signed in')
+  const token = readSessionToken(request)
+  if (!token) throw AppError.unauthorized('Not signed in')
 
-  const { userId } = verifyAccessToken(accessToken)
+  const { userId } = verifySession(token)
   const user = await User.findById(userId)
   if (!user) throw AppError.unauthorized('User not found')
   if (user.status !== 'active') {

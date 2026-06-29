@@ -2,18 +2,6 @@ import { api } from './api'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export interface SendOtpResponse {
-  success: boolean
-  data: { message: string }
-}
-
-export interface VerifyOtpResponse {
-  success: boolean
-  data:
-    | { isNewUser: true; registrationToken: string }
-    | { isNewUser: false; user: AuthUser }
-}
-
 export interface AuthUser {
   _id: string
   name: string
@@ -23,6 +11,16 @@ export interface AuthUser {
   status: string
   createdAt?: string
   updatedAt?: string
+}
+
+export interface SendOtpResponse {
+  success: boolean
+  data: { message: string }
+}
+
+export interface VerifyOtpResponse {
+  success: boolean
+  data: { user: AuthUser }
 }
 
 export interface RegisterResponse {
@@ -49,21 +47,11 @@ export function verifyOtp(email: string, code: string): Promise<VerifyOtpRespons
 }
 
 export function register(
-  registrationToken: string,
   name: string,
   email: string,
   workspaceName: string,
 ): Promise<RegisterResponse> {
-  return api.post<RegisterResponse>('/api/auth/register', {
-    registrationToken,
-    name,
-    email,
-    workspaceName,
-  })
-}
-
-export function refreshToken(): Promise<{ success: boolean }> {
-  return api.post<{ success: boolean }>('/api/auth/refresh')
+  return api.post<RegisterResponse>('/api/auth/register', { name, email, workspaceName })
 }
 
 export function logout(): Promise<void> {
